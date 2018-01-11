@@ -122,9 +122,17 @@ if (unpack("n", $loadAddress) == 0) {
 	}
 }
 
-# Calculate md5 sum
-
+# new method (since HVSC #68)
 my $ctx = Digest::MD5->new;
+
+sysseek $bin, 0, SEEK_SET;
+
+$ctx->addfile($bin);
+
+printf "MD5 new method: %s\n",  $ctx->hexdigest;
+
+# old method
+$ctx->reset;
 
 # Include C64 data
 my $offset = unpack("n", $dataOffset);
@@ -159,8 +167,7 @@ if (($flags & 0x0C) >> 2 == 0b10) {
     $ctx->add(ack("c", 2));
 }
 
-print $ctx->hexdigest;
-print "\n";
+printf "MD5 old method: %s\n",  $ctx->hexdigest;
 
 
 close $bin;
