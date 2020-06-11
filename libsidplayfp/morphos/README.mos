@@ -1,0 +1,23 @@
+============
+LibSidplayFp
+============
+
+MorphOS port of libsidplayfp.
+
+------------------
+Build requirements
+------------------
+
+* gcc (varsion > 5)
+* xa - cross assembler
+
+--------------------
+XA - cross assembler
+--------------------
+
+Cross-assembler for 65xx/R65C02/65816
+
+Required for a65 file compiling. 
+
+http://aminet.net/package/dev/cross/xa-mos
+https://www.morphos-storage.net/?page=Development%2FCross&file=XA_2.3.10.lha
