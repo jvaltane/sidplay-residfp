@@ -1,0 +1,16 @@
+* "sidplayfp.library"
+##base _SidplayFpBase
+##bias 30
+##public
+SidplayFpCreate(sfn)(sysv)
+SidplayFpCreateTagList(sfn,item)(sysv)
+SidplayFpCreateTags(sfn,...)(sysv)
+SidplayFpFree(sf)(sysv)
+SidplayFpLoad(sf,data,dataLen)(sysv)
+SidplayFpPlay(sf,samples,samplesLen)(sysv)
+SidplayFpInfo(sf)(sysv)
+SidplayFpSubtunes(sf)(sysv)
+SidplayFpSetSubtune(sf,subtune)(sysv)
+SidplayFpSubtuneLength(sf,subtune)(sysv)
+SidplayFpCurrentSubtuneLength(sf)(sysv)
+##end
