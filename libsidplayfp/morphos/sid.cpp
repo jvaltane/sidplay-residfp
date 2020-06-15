@@ -45,14 +45,14 @@ static SidConfig::cia_model_t cia_model_to_sid_config (BYTE cia_model);
 static SidConfig::sampling_method_t sampling_method_to_sid_config (BYTE sampling_method);
 static SidConfig::playback_t playback_to_sid_config (BYTE playback);
 
-struct SidplayFp *sid_create (CONST struct SidplayFpNew *sfn)
+struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 {
   struct SidplayFp *s = static_cast<struct SidplayFp *> (AllocVec(sizeof(struct SidplayFp), MEMF_PUBLIC|MEMF_CLEAR));
   if (s == NULL) {
     return NULL;
   }
 
-  s->sf_Loaded = FALSE;
+  s->Loaded = FALSE;
 
   sid_priv_t *priv = static_cast<sid_priv_t *> (AllocVec(sizeof(sid_priv_t), MEMF_PUBLIC|MEMF_CLEAR));
   if (priv == NULL) {
@@ -67,33 +67,33 @@ struct SidplayFp *sid_create (CONST struct SidplayFpNew *sfn)
 	return NULL;
   }
 
-  priv->emulation = sfn->sfn_Emulation;
-  priv->sid_model = sid_model_to_sid_config (sfn->sfn_SidModel);
-  priv->sid_model_force = sfn->sfn_SidModelForce?true:false;
-  priv->c64_model = c64_model_to_sid_config (sfn->sfn_MachineType);
-  priv->c64_model_force = sfn->sfn_MachineTypeForce?true:false;
-  priv->cia_model = cia_model_to_sid_config (sfn->sfn_CiaModel);
-  priv->sampling_method = sampling_method_to_sid_config (sfn->sfn_SamplingMethod);
-  priv->filter = sfn->sfn_Filter?true:false;
-  priv->digiboost = sfn->sfn_Digiboost?true:false;
-  priv->playback = playback_to_sid_config (sfn->sfn_Playback);
-  priv->resid_bias = sfn->sfn_ResidBias;
-  priv->residfp_filter_curve_6581 = sfn->sfn_ResidFpFilterCurve6581;
-  priv->residfp_filter_curve_8580 = sfn->sfn_ResidFpFilterCurve8580;
-  priv->audio_frequency = sfn->sfn_AudioFrequency;
-  priv->database = sfn->sfn_Database;
+  priv->emulation = sfn->Emulation;
+  priv->sid_model = sid_model_to_sid_config (sfn->SidModel);
+  priv->sid_model_force = sfn->SidModelForce?true:false;
+  priv->c64_model = c64_model_to_sid_config (sfn->MachineType);
+  priv->c64_model_force = sfn->MachineTypeForce?true:false;
+  priv->cia_model = cia_model_to_sid_config (sfn->CiaModel);
+  priv->sampling_method = sampling_method_to_sid_config (sfn->SamplingMethod);
+  priv->filter = sfn->Filter?true:false;
+  priv->digiboost = sfn->Digiboost?true:false;
+  priv->playback = playback_to_sid_config (sfn->Playback);
+  priv->resid_bias = sfn->ResidBias;
+  priv->residfp_filter_curve_6581 = sfn->ResidFpFilterCurve6581;
+  priv->residfp_filter_curve_8580 = sfn->ResidFpFilterCurve8580;
+  priv->audio_frequency = sfn->AudioFrequency;
+  priv->database = sfn->Database;
 
-  s->sf_PrivateData = (APTR)priv;
+  s->PrivateData = (APTR)priv;
 
   return s;
 }
 
-struct SidplayFp *sid_create_taglist (CONST struct SidplayFpNew *sfn, CONST struct TagItem *Item)
+struct SidplayFp *sid_create_taglist (struct TagItem *Item)
 {
     return 0;
 }
 
-struct SidplayFp *sid_create_tags (ULONG, ...)
+struct SidplayFp *sid_create_tags ( Tag, ...)
 {
     return 0;
 }
@@ -102,7 +102,7 @@ void sid_free (struct SidplayFp *s)
 {
   sid_priv_t *priv = NULL;
   if (s) {
-    priv = static_cast<sid_priv_t *>(s->sf_PrivateData);
+    priv = static_cast<sid_priv_t *>(s->PrivateData);
     if (priv) {
       if (priv->tune) {
         delete priv->tune;
@@ -114,19 +114,19 @@ void sid_free (struct SidplayFp *s)
       }
 
       FreeVec (priv);
-      s->sf_PrivateData = 0;
+      s->PrivateData = 0;
     }
     FreeVec (s);
   }
 }
 
-BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, CONST LONG data_len)
+BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
 {
   if (s == NULL) {
     return FALSE;
   }
 
-  sid_priv_t *priv = static_cast<sid_priv_t *> (s->sf_PrivateData);
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
   if (priv->tune) {
     delete priv->tune;
     priv->tune = NULL;
@@ -206,28 +206,31 @@ BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, CONST LONG data_len)
   if (rc == false) {
     return FALSE;
   }
-  s->sf_Loaded = TRUE;
+  s->Loaded = TRUE;
   return TRUE;
 }
 
-LONG sid_play (struct SidplayFp *s, SHORT *buffer, const LONG buffer_len)
+LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len)
 {
   if (s == NULL) {
     return -1;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (s->Loaded != TRUE) {
     return -2;
   }
-  sid_priv_t *priv = static_cast<sid_priv_t *> (s->sf_PrivateData);
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
   return priv->sp->play (buffer, buffer_len);
 }
 
-BOOL sid_tune_info (struct SidplayFp *s)
+BOOL sid_tune_info (struct SidplayFp *s, struct SidplayFpInfo *info)
 {
   if (s == NULL) {
     return FALSE;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (info == NULL) {
+    return FALSE;
+  }
+  if (s->Loaded != TRUE) {
     return FALSE;
   }
   return 0;
@@ -238,7 +241,7 @@ UWORD sid_subtunes (struct SidplayFp *s)
   if (s == NULL) {
     return 0;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (s->Loaded != TRUE) {
     return 0;
   }
   return 0;
@@ -249,7 +252,7 @@ BOOL sid_subtune_set (struct SidplayFp *s, UWORD subtune)
   if (s == NULL) {
     return FALSE;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (s->Loaded != TRUE) {
     return FALSE;
   }
   return 0;
@@ -260,7 +263,7 @@ LONG sid_subtune_length (struct SidplayFp *s, UWORD subtune)
   if (s == NULL) {
     return -1;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (s->Loaded != TRUE) {
     return -1;
   }
   return 0;
@@ -271,7 +274,7 @@ LONG sid_subtune_length_current (struct SidplayFp *s)
   if (s == NULL) {
     return -1;
   }
-  if (s->sf_Loaded != TRUE) {
+  if (s->Loaded != TRUE) {
     return -1;
   }
   return 0;
@@ -335,5 +338,4 @@ SidConfig::playback_t playback_to_sid_config (BYTE playback)
   return SidConfig::STEREO;
 }
 
-/* exterm c */
-}
+} /* extern "C" */
