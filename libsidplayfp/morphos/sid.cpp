@@ -8,6 +8,7 @@
 
 extern "C" {
 #include <proto/exec.h>
+#include <proto/dos.h>
 }
 
 #include <string>
@@ -34,6 +35,10 @@ typedef struct {
   float residfp_filter_curve_8580;
   std::string database;
   uint32_t audio_frequency;
+  std::string kernal;
+  std::string basic;
+  std::string chargen;
+  struct SidplayFpInfo *info;
 } sid_priv_t;
 
 extern "C" {
@@ -44,6 +49,13 @@ static SidConfig::c64_model_t c64_model_to_sid_config (BYTE c64_model);
 static SidConfig::cia_model_t cia_model_to_sid_config (BYTE cia_model);
 static SidConfig::sampling_method_t sampling_method_to_sid_config (BYTE sampling_method);
 static SidConfig::playback_t playback_to_sid_config (BYTE playback);
+
+static BYTE tuneInfoSidModelConvert(SidTuneInfo::model_t s);
+static BYTE tuneInfoClockSpeedConvert(SidTuneInfo::clock_t c);
+static BYTE tuneInfoCompabilityConvert(SidTuneInfo::compatibility_t c);
+
+static bool load_file(const char *file_name, uint8_t *buf, LONG size);
+static void load_roms (sid_priv_t *priv);
 
 struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 {
@@ -56,6 +68,12 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 
   sid_priv_t *priv = static_cast<sid_priv_t *> (AllocVec(sizeof(sid_priv_t), MEMF_PUBLIC|MEMF_CLEAR));
   if (priv == NULL) {
+    sid_free(s);
+	return NULL;
+  }
+
+  priv->info = static_cast<struct SidplayFpInfo *> (AllocVec(sizeof(struct SidplayFpInfo), MEMF_PUBLIC|MEMF_CLEAR));
+  if (priv->info == NULL) {
     sid_free(s);
 	return NULL;
   }
@@ -82,8 +100,13 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
   priv->residfp_filter_curve_8580 = sfn->ResidFpFilterCurve8580;
   priv->audio_frequency = sfn->AudioFrequency;
   priv->database = sfn->Database;
+  priv->basic = sfn->RomBasic?sfn->RomBasic:"";
+  priv->kernal = sfn->RomKernal?sfn->RomKernal:"";
+  priv->chargen = sfn->RomChargen?sfn->RomChargen:"";
 
   s->PrivateData = (APTR)priv;
+
+  load_roms(priv);
 
   return s;
 }
@@ -104,6 +127,10 @@ void sid_free (struct SidplayFp *s)
   if (s) {
     priv = static_cast<sid_priv_t *>(s->PrivateData);
     if (priv) {
+      if (priv->info) {
+        FreeVec (priv->info);
+		priv->info = NULL;
+      }
       if (priv->tune) {
         delete priv->tune;
         priv->tune = NULL;
@@ -120,11 +147,13 @@ void sid_free (struct SidplayFp *s)
   }
 }
 
-BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
+BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
 {
   if (s == NULL) {
     return FALSE;
   }
+
+  s->Loaded = FALSE;
 
   sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
   if (priv->tune) {
@@ -145,7 +174,7 @@ BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
   priv->config = priv->sp->config ();
 
   sidbuilder *sb = NULL;
-  if (priv->emulation == SF_EMULATION_RESID) {
+  if (priv->emulation == SFN_EMULATION_RESID) {
     ReSIDBuilder *rsb = new ReSIDBuilder ("ReSID");
     if (is_sidbuilder_valid(rsb) == false) {
       return FALSE;
@@ -206,7 +235,9 @@ BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
   if (rc == false) {
     return FALSE;
   }
+
   s->Loaded = TRUE;
+
   return TRUE;
 }
 
@@ -222,17 +253,55 @@ LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len)
   return priv->sp->play (buffer, buffer_len);
 }
 
-BOOL sid_tune_info (struct SidplayFp *s, struct SidplayFpInfo *info)
+CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s)
 {
   if (s == NULL) {
-    return FALSE;
-  }
-  if (info == NULL) {
-    return FALSE;
+    return NULL;
   }
   if (s->Loaded != TRUE) {
-    return FALSE;
+    return NULL;
   }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return NULL;
+  }
+  if (priv->info == NULL) {
+    return NULL;
+  }
+  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+  if (tuneInfo == NULL) {
+    return NULL;
+  }
+  struct SidplayFpInfo *i = priv->info;
+  unsigned int current = tuneInfo->currentSong();
+  i->Title = (STRPTR)tuneInfo->infoString(0);
+  i->Author = (STRPTR)tuneInfo->infoString(1);
+  i->Released = (STRPTR)tuneInfo->infoString(2);
+
+  i->SidsRequired = tuneInfo->sidChips();
+  i->SidModel = tuneInfoSidModelConvert(tuneInfo->sidModel(current));
+  i->ClockSpeed = tuneInfoClockSpeedConvert(tuneInfo->clockSpeed());
+  i->Compability = tuneInfoCompabilityConvert(tuneInfo->compatibility());
+
+  return static_cast<CONST struct SidplayFpInfo *>(i);
+}
+
+UWORD sid_current_subtune (struct SidplayFp *s)
+{
+  if (s == NULL) {
+    return 0;
+  }
+  if (s->Loaded != TRUE) {
+    return 0;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return 0;
+  }
+
+  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+  if (tuneInfo) return static_cast<UWORD>(tuneInfo->currentSong());
+
   return 0;
 }
 
@@ -244,6 +313,12 @@ UWORD sid_subtunes (struct SidplayFp *s)
   if (s->Loaded != TRUE) {
     return 0;
   }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return 0;
+  }
+  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+  if (tuneInfo) return static_cast<UWORD>(tuneInfo->songs());
   return 0;
 }
 
@@ -294,7 +369,7 @@ bool is_sidbuilder_valid(sidbuilder *b)
 
 SidConfig::sid_model_t sid_model_to_sid_config(BYTE sid_model)
 {
-  if (sid_model == SF_SID_MODEL_MOS8580) {
+  if (sid_model == SFN_SID_MODEL_MOS8580) {
     return SidConfig::MOS8580;
   }
   return SidConfig::MOS6581;
@@ -302,13 +377,13 @@ SidConfig::sid_model_t sid_model_to_sid_config(BYTE sid_model)
 
 SidConfig::c64_model_t c64_model_to_sid_config(BYTE c64_model)
 {
-  if (c64_model == SF_MACHINE_TYPE_NTSC) {
+  if (c64_model == SFN_MACHINE_TYPE_NTSC) {
     return SidConfig::NTSC;
-  } else if (c64_model == SF_MACHINE_TYPE_PAL_M) {
+  } else if (c64_model == SFN_MACHINE_TYPE_PAL_M) {
     return SidConfig::PAL_M;
-  } else if (c64_model == SF_MACHINE_TYPE_OLD_NTSC) {
+  } else if (c64_model == SFN_MACHINE_TYPE_OLD_NTSC) {
     return SidConfig::OLD_NTSC;
-  } else if (c64_model == SF_MACHINE_TYPE_DREAN) {
+  } else if (c64_model == SFN_MACHINE_TYPE_DREAN) {
     return SidConfig::DREAN;
   }
   return SidConfig::PAL;
@@ -316,7 +391,7 @@ SidConfig::c64_model_t c64_model_to_sid_config(BYTE c64_model)
 
 SidConfig::cia_model_t cia_model_to_sid_config(BYTE cia_model)
 {
-  if (cia_model == SF_CIA_MODEL_MOS8521) {
+  if (cia_model == SFN_CIA_MODEL_MOS8521) {
     return SidConfig::MOS8521;
   }
   return SidConfig::MOS6526;
@@ -324,7 +399,7 @@ SidConfig::cia_model_t cia_model_to_sid_config(BYTE cia_model)
 
 SidConfig::sampling_method_t sampling_method_to_sid_config(BYTE sampling_method)
 {
-  if (sampling_method == SF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE) {
+  if (sampling_method == SFN_SAMPLING_METHOD_RESAMPLE_INTERPOLATE) {
     return SidConfig::RESAMPLE_INTERPOLATE;
   }
   return SidConfig::INTERPOLATE;
@@ -332,10 +407,92 @@ SidConfig::sampling_method_t sampling_method_to_sid_config(BYTE sampling_method)
 
 SidConfig::playback_t playback_to_sid_config (BYTE playback)
 {
-  if (playback == SF_PLAYBACK_MONO) {
+  if (playback == SFN_PLAYBACK_MONO) {
     return SidConfig::MONO;
   }
   return SidConfig::STEREO;
+}
+
+// for info
+static BYTE tuneInfoSidModelConvert(SidTuneInfo::model_t s)
+{
+    if (s == SidTuneInfo::SIDMODEL_6581) {
+        return SFI_SID_MODEL_MOS6581;
+    } else if (s == SidTuneInfo::SIDMODEL_8580) {
+        return SFI_SID_MODEL_MOS8580;
+    } if (s == SidTuneInfo::SIDMODEL_ANY) {
+        return SFI_SID_MODEL_ANY;
+    }
+    return SFI_SID_MODEL_ANY;
+}
+
+static BYTE tuneInfoClockSpeedConvert(SidTuneInfo::clock_t c)
+{
+  if (c == SidTuneInfo::CLOCK_PAL) {
+    return SFI_CLOCK_PAL;
+  } else if (c == SidTuneInfo::CLOCK_NTSC) {
+    return SFI_CLOCK_NTSC;
+  } else if (c == SidTuneInfo::CLOCK_ANY) {
+    return SFI_CLOCK_ANY;
+  }
+  return SFI_CLOCK_UNKNOWN;
+}
+
+static BYTE tuneInfoCompabilityConvert(SidTuneInfo::compatibility_t c)
+{
+  if (c == SidTuneInfo::COMPATIBILITY_C64) {
+    return SFI_COMPATIBILITY_C64;
+  } else if (c == SidTuneInfo::COMPATIBILITY_PSID) {
+    return SFI_COMPATIBILITY_PSID;
+  } else if (c == SidTuneInfo::COMPATIBILITY_R64) {
+    return SFI_COMPATIBILITY_R64;
+  } else if (c == SidTuneInfo::COMPATIBILITY_BASIC) {
+    return SFI_COMPATIBILITY_BASIC;
+  }
+  return -1;
+}
+
+
+bool load_file(const char *file_name, uint8_t *buf, LONG size)
+{
+	LONG actual = 0;
+	BPTR fh = 0;
+    fh = Open(file_name, MODE_OLDFILE);
+    if (fh == 0) return false;
+    actual = Read(fh, buf, size);
+    Close(fh);
+    if (actual != size) return false;
+    return true;
+}
+
+void load_roms(sid_priv_t *p)
+{
+    if (p->basic == "" || p->kernal == "" || p->chargen == "") return;
+
+    uint8_t *chargen = new uint8_t [4096];
+    uint8_t *kernal = new uint8_t [8192];
+    uint8_t *basic = new uint8_t [8192];
+
+    if (chargen == NULL) goto rom_error;
+    if (kernal == NULL) goto rom_error;
+    if (basic == NULL) goto rom_error;
+
+    if (!load_file(p->basic.c_str(), basic, 8192)) {
+        goto rom_error;
+    }
+    if (!load_file(p->kernal.c_str(), kernal, 8192)) {
+        goto rom_error;
+    }
+    if (!load_file(p->chargen.c_str(), chargen, 4096)) {
+        goto rom_error;
+    }
+
+    p->sp->setRoms(kernal, basic, chargen);
+
+rom_error:
+    delete [] chargen;
+    delete [] kernal;
+    delete [] basic;
 }
 
 } /* extern "C" */

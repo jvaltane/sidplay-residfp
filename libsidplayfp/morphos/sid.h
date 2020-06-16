@@ -12,11 +12,12 @@ struct SidplayFp *sid_create_taglist (struct TagItem *item);
 struct SidplayFp *sid_create_tags (Tag, ...);
 void sid_free (struct SidplayFp *s);
 
-BOOL sid_load (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len);
+BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len);
 LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len);
 
-BOOL sid_tune_info (struct SidplayFp *s, struct SidplayFpInfo *info);
+CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s);
 
+UWORD sid_current_subtune (struct SidplayFp *s);
 UWORD sid_subtunes (struct SidplayFp *s);
 BOOL sid_subtune_set (struct SidplayFp *s, UWORD subtune);
 LONG sid_subtune_length (struct SidplayFp *s, UWORD subtune);

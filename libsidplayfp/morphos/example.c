@@ -4,19 +4,17 @@
 #include <proto/dos.h>
 #include <proto/sidplayfp.h>
 
-#define DEFAULT_SAMPLE_BUF_SIZE 4096
-
 struct DosLibrary *DOSBase;
 
 ULONG __stack = 20000;
 
 int main (int argc, char **argv)
 {
-	int i = 0;
-	LONG samples = 0;
-	LONG sampleBufSize = DEFAULT_SAMPLE_BUF_SIZE;
-	SHORT sampleBuf[DEFAULT_SAMPLE_BUF_SIZE];
+    int i = 0;
     int retval = 0;
+    SHORT sampleBuf[4096];
+    LONG sampleCount = 4096;
+    LONG got = 0;
     BOOL tst = FALSE;
 	struct SidplayFp *sf = NULL;
     BPTR fh = 0;
@@ -25,24 +23,24 @@ int main (int argc, char **argv)
     UBYTE *sid = NULL;
 	struct SidplayFpNew sfn =
 	{
-		SF_EMULATION_RESIDFP,
-		SF_SID_MODEL_MOS6581,
+		SFN_EMULATION_RESIDFP,
+		SFN_SID_MODEL_MOS6581,
 		FALSE,
-		SF_MACHINE_TYPE_PAL,
+		SFN_MACHINE_TYPE_PAL,
 		FALSE,
-		SF_CIA_MODEL_MOS6526,
-		SF_SAMPLING_METHOD_INTERPOLATE,
+		SFN_CIA_MODEL_MOS6526,
+		SFN_SAMPLING_METHOD_INTERPOLATE,
 		FALSE,
 		FALSE,
-		SF_PLAYBACK_MONO,
-		NULL,
-		NULL,
-		NULL,
+		SFN_PLAYBACK_MONO,
+		"kernal",
+		"basic",
+		"chargen",
 		0.5f,
 		0.5f,
 		0.5f,
 		44100,
-		NULL
+		"database"
 	};
 
     if (argc != 2) {
@@ -94,28 +92,36 @@ int main (int argc, char **argv)
 		retval = 1;
         goto error;
 	}
-
-	printf("Load SID\n");
-    tst = SidplayFpLoad(sf, sid, sidSize);
+	printf("Init SID...\n");
+    tst = SidplayFpInit(sf, sid, sidSize);
     if (tst == FALSE) {
 		fprintf(stderr, "Error: Could not Load SID to SidplayFP\n");
 		retval = 1;
         goto error;
     }
-	printf("Loaded successfully.\n");
+    FreeVec(sid);
+    sid = NULL;
 
-	do {
-		samples = SidplayFpPlay(sf, sampleBuf, sampleBufSize);
-		printf("Got samples %ld, bytes: %ld\n", samples, samples*sizeof(SHORT));
-	} while(samples > 0 && i++ < 50);
+    {
+        CONST struct SidplayFpInfo *info = SidplayFpInfo(sf);
+        if (info != NULL) {
+            printf("Author: %s, Title: %s\n", info->Author?info->Author:"NULL", info->Title?info->Title:"NULL");
+        }
+        printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    }
+
+    i = 0;
+    do {
+        got = SidplayFpPlay(sf, sampleBuf, sampleCount);
+        printf("Got samples: %d (bytes: %d)\n", got, got*sizeof(SHORT));
+    } while (got > 0 && i++ < 10);
 
 error:
+    printf("Releasing...\n");
     if (fh != 0) Close(fh);
 	if (sf != NULL) SidplayFpFree(sf);
     if (sid != NULL) FreeVec(sid);
     CloseLibrary((struct Library *)DOSBase);
-
-	printf("Leaving with retval (%d)\n", retval);
 
 	return retval;
 }

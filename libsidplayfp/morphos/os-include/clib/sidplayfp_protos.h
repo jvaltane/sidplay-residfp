@@ -33,22 +33,36 @@ struct SidplayFpNew
     STRPTR Database;              /** default NULL */
 };
 
-/* defines */
-#define SF_EMULATION_RESIDFP 0
-#define SF_EMULATION_RESID 1
-#define SF_SID_MODEL_MOS6581 0
-#define SF_SID_MODEL_MOS8580 1
-#define SF_MACHINE_TYPE_PAL 0
-#define SF_MACHINE_TYPE_NTSC 1
-#define SF_MACHINE_TYPE_PAL_M 2
-#define SF_MACHINE_TYPE_OLD_NTSC 3
-#define SF_MACHINE_TYPE_DREAN 4
-#define SF_CIA_MODEL_MOS6526 0
-#define SF_CIA_MODEL_MOS8521 1
-#define SF_SAMPLING_METHOD_INTERPOLATE 0
-#define SF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
-#define SF_PLAYBACK_MONO 0
-#define SF_PLAYBACK_STEREO 1
+/* SidplayFpNew defines */
+#define SFN_EMULATION_RESIDFP 0
+#define SFN_EMULATION_RESID 1
+#define SFN_SID_MODEL_MOS6581 0
+#define SFN_SID_MODEL_MOS8580 1
+#define SFN_MACHINE_TYPE_PAL 0
+#define SFN_MACHINE_TYPE_NTSC 1
+#define SFN_MACHINE_TYPE_PAL_M 2
+#define SFN_MACHINE_TYPE_OLD_NTSC 3
+#define SFN_MACHINE_TYPE_DREAN 4
+#define SFN_CIA_MODEL_MOS6526 0
+#define SFN_CIA_MODEL_MOS8521 1
+#define SFN_SAMPLING_METHOD_INTERPOLATE 0
+#define SFN_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
+#define SFN_PLAYBACK_MONO 0
+#define SFN_PLAYBACK_STEREO 1
+
+/* SidplayFpInfo defines */
+#define SFI_CLOCK_UNKNOWN 0
+#define SFI_CLOCK_PAL 1
+#define SFI_CLOCK_NTSC 2
+#define SFI_CLOCK_ANY 3
+#define SFI_SID_MODE_UNKNOWN 0
+#define SFI_SID_MODEL_MOS6581 1
+#define SFI_SID_MODEL_MOS8580 2
+#define SFI_SID_MODEL_ANY 3
+#define SFI_COMPATIBILITY_C64 0
+#define SFI_COMPATIBILITY_PSID 1
+#define SFI_COMPATIBILITY_R64 2
+#define SFI_COMPATIBILITY_BASIC 3
 
 #define SFA_DUMMY                  (TAG_USER + 0x4000)
 #define SFA_Emulation              (SFNA_DUMMY + 1)
@@ -72,21 +86,24 @@ struct SidplayFpNew
 struct SidplayFpInfo
 {
     STRPTR Title;
-    STRPTR Artist;
-    UWORD SubtuneCount;
+    STRPTR Author;
+	STRPTR Released;
+	BYTE SidModel;
+    BYTE SidsRequired;
+    BYTE ClockSpeed;
+    BYTE Compability;
 };
 
 struct SidplayFpError
 {
-    STRPTR Message;
     LONG Error;
+    STRPTR Message;
 };
 
 struct SidplayFp
 {
     BOOL Loaded;                 /** Is player in loaded state */
-    UWORD CurrentSubtune;        /** Currently loaded subtune. On error or not loded zero */
-    struct SidplayFpError error; /** Error information from library */
+    struct SidplayFpError Error; /** Error information from library */
     APTR PrivateData;            /** Private C++ stuff is here */
     ULONG Reserved[5];           /** Some reserved bytes if needed in the future */
 };
@@ -101,7 +118,7 @@ struct SidplayFp
 struct SidplayFp *SidplayFpCreate( struct SidplayFpNew *NewPlayer );
 
 /**
- * Allocates player with Tags. Ifno tags given default values used instead.
+ * Allocates player with Tags. If no tags given default values used instead.
  *
  * NewPlayer - struct SidplayFpNew to initialize player
  *
@@ -115,26 +132,38 @@ struct SidplayFp *SidplayFpCreateTagList( struct TagItem *Item );
 struct SidplayFp *SidplayFpCreateTags( Tag, ... );
 
 /**
- * Loads SID. After load it is possible to get information and call play.
- * After call it ispossible to free SidData.
+ * Free player
+ *
+ * Player - allocated SidplayFp struct
+ */
+void SidplayFpFree( struct SidplayFp *Player );
+
+/**
+ * Initializes player with given SID-data. After load it is possible to check information
+ * from players SidplayFpInfo struct. It is safe to free SidData after call.
  *
  * Player - allocated SidplayFp struct
  * SidData - whole SID-file in memory.
  * SidSize - size of the SidData
  *
- * returns: TRUE if sguccess
- */
-BOOL SidplayFpLoad( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
-
-/**
- * Get SID tune info. Fills SidplayFpInfo stucture.
- *
- * Player - allocated SidplayFp struct
- * Info - struct SidplayFpInfo. User must alloc this before pall.
- *
  * returns: TRUE if success
  */
-BOOL SidplayFpInfo( struct SidplayFp *Player, struct SidplayFpInfo *Info );
+BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
+
+/**
+ * Get current song information.
+ *
+ */
+CONST struct SidplayFpInfo *SidplayFpInfo( struct SidplayFp *Player );
+
+/**
+ * Get current subtune
+ *
+ * Player
+ *
+ * returns: zero if fails
+ */
+UWORD SidplayFpCurrentSubtune( struct SidplayFp *Player );
 
 /**
  * Number of the subtunes in song
@@ -166,13 +195,6 @@ BOOL SidplayFpSetSubtune( struct SidplayFp *Player, UWORD Subtune );
  * returns: Number of samples really put to SampleBuffer. In case of error negative value.
  */
 LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCount );
-
-/**
- * Free player
- *
- * Player - allocated SidplayFp struct
- */
-void SidplayFpFree( struct SidplayFp *Player );
 
 /**
  * Get current subtune length. Requires HVSC database.

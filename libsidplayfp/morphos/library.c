@@ -1,6 +1,7 @@
 #include <exec/resident.h>
 
 #include <proto/exec.h>
+#include <proto/dos.h>
 
 #include "library.h"
 #include "sid.h"
@@ -47,9 +48,10 @@ static const APTR FuncTable[] =
 	(APTR)   sid_create_taglist,
 	(APTR)   sid_create_tags,
 	(APTR)   sid_free,
-	(APTR)   sid_load,
+	(APTR)   sid_init,
 	(APTR)   sid_play,
 	(APTR)   sid_tune_info,
+	(APTR)   sid_current_subtune,
 	(APTR)   sid_subtunes,
 	(APTR)   sid_subtune_set,
 	(APTR)   sid_subtune_length,
@@ -209,6 +211,7 @@ static BPTR LIB_Close(void)
 		CallFuncArray(__dtrslist);
 		SegList = LibBase->SegList;
 		RemoveLibrary(LibBase);
+        CloseLibrary((struct Library *)DOSBase);
 	}
 	Permit();
 
@@ -230,6 +233,7 @@ static struct Library *LIB_Open(void)
 
 	if (LibBase->Library.lib_OpenCnt == 1)
 	{
+        DOSBase = (struct DosLibrary *)OpenLibrary("dos.library", 0L);
 		CallFuncArray(__ctrslist);
 	}
 
