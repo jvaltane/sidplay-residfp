@@ -88,8 +88,24 @@ int main (int argc, char **argv)
             printf("Author: %s, Title: %s\n", info->Author?info->Author:"NULL", info->Title?info->Title:"NULL");
         }
         printf("MD5: %s\n", md5?md5:"NULL");
-        printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
     }
+    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    printf("Set invalid subtune: 255\n");
+    tst = SidplayFpSetSubtune(sf, 255);
+    if (tst == FALSE) {
+        if (sf != NULL) {
+            printf("SF error: %ld\n", sf->Error);
+        }
+    }
+    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    printf("Set subtune: 2\n");
+    tst = SidplayFpSetSubtune(sf, 2);
+    if (tst == FALSE) {
+        if (sf != NULL) {
+            printf("SF error: %ld\n", sf->Error);
+        }
+    }
+    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
 
     i = 0;
     do {

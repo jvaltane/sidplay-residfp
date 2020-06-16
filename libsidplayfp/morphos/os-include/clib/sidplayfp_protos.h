@@ -39,7 +39,7 @@
 #define SFI_COMPATIBILITY_R64 2
 #define SFI_COMPATIBILITY_BASIC 3
 
-/* tags */
+/* Tags */
 #define SFA_DUMMY                  (TAG_USER + 0x4000)
 #define SFA_Emulation              (SFA_DUMMY + 1)
 #define SFA_SidModel               (SFA_DUMMY + 2)
@@ -56,6 +56,18 @@
 #define SFA_ResidFpFilterCurve8580 (SFA_DUMMY + 13)
 #define SFA_AudioFrequency         (SFA_DUMMY + 14)
 
+/* Errors */
+#define SFE_OK                       (0UL)
+#define SFE_PARAMETERS               (1UL)
+#define SFE_PLAYER_NOT_ALLOCATED     (2UL)
+#define SFE_PLAYER_NOT_INITIALIZED   (3UL)
+#define SFE_PLAYER_TUNE_INFO         (4UL)
+#define SFE_PLAYER_TUNE_LOAD         (5UL)
+#define SFE_PLAYER_SUBTUNE           (6UL)
+#define SFE_PLAYER_CONFIG            (7UL)
+#define SFE_PLAYER_EMULATION_RESID   (8UL)
+#define SFE_PLAYER_EMULATION_RESIDFP (9UL)
+
 struct SidplayFpInfo
 {
     STRPTR Title;
@@ -67,16 +79,10 @@ struct SidplayFpInfo
     BYTE Compability;
 };
 
-struct SidplayFpError
-{
-    LONG Error;
-    STRPTR Message;
-};
-
 struct SidplayFp
 {
-    BOOL Loaded;                 /** Is player in loaded state */
-    struct SidplayFpError Error; /** Error information from library */
+    BOOL Initialized;            /** Is player in initialised state */
+    ULONG Error;                 /** Error information from library */
     APTR PrivateData;            /** Private C++ stuff is here */
     ULONG Reserved[5];           /** Some reserved bytes if needed in the future */
 };
@@ -129,13 +135,12 @@ BOOL SidplayFpSetRoms( struct SidplayFp *Player, CONST UBYTE *Kernal, CONST UBYT
 BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
 
 /**
- * Get current song information. Result is valid after init. Changing subtune
- * call this again.
+ * Get current song information. Result is valid after init. When changing
+ * subtune call this again.
  *
  * Player
  *
- * returns: const pointer to struct SidplayFpInfo. Changing or freeing it is not
- *  alloved..
+ * returns: const pointer to struct SidplayFpInfo. Do not change or free it.
  */
 CONST struct SidplayFpInfo *SidplayFpInfo( struct SidplayFp *Player );
 
