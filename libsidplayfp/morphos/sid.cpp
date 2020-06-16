@@ -35,9 +35,6 @@ typedef struct {
   float residfp_filter_curve_8580;
   std::string database;
   uint32_t audio_frequency;
-  std::string kernal;
-  std::string basic;
-  std::string chargen;
   struct SidplayFpInfo *info;
 } sid_priv_t;
 
@@ -50,12 +47,11 @@ static SidConfig::cia_model_t cia_model_to_sid_config (BYTE cia_model);
 static SidConfig::sampling_method_t sampling_method_to_sid_config (BYTE sampling_method);
 static SidConfig::playback_t playback_to_sid_config (BYTE playback);
 
-static BYTE tuneInfoSidModelConvert(SidTuneInfo::model_t s);
-static BYTE tuneInfoClockSpeedConvert(SidTuneInfo::clock_t c);
-static BYTE tuneInfoCompabilityConvert(SidTuneInfo::compatibility_t c);
+static BYTE tune_info_sid_model_convert(SidTuneInfo::model_t s);
+static BYTE tune_info_clock_speed_convert(SidTuneInfo::clock_t c);
+static BYTE tune_info_compability_convert(SidTuneInfo::compatibility_t c);
 
-static bool load_file(const char *file_name, uint8_t *buf, LONG size);
-static void load_roms (sid_priv_t *priv);
+//static bool load_file(const char *file_name, uint8_t *buf, LONG size);
 
 struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 {
@@ -100,13 +96,8 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
   priv->residfp_filter_curve_8580 = sfn->ResidFpFilterCurve8580;
   priv->audio_frequency = sfn->AudioFrequency;
   priv->database = sfn->Database;
-  priv->basic = sfn->RomBasic?sfn->RomBasic:"";
-  priv->kernal = sfn->RomKernal?sfn->RomKernal:"";
-  priv->chargen = sfn->RomChargen?sfn->RomChargen:"";
 
   s->PrivateData = (APTR)priv;
-
-  load_roms(priv);
 
   return s;
 }
@@ -146,6 +137,26 @@ void sid_free (struct SidplayFp *s)
     FreeVec (s);
   }
 }
+
+BOOL sid_set_roms(struct SidplayFp *s, CONST UBYTE *kernal, CONST UBYTE *basic, CONST UBYTE *chargen)
+{
+  if (s == NULL) {
+    return FALSE;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return FALSE;
+  }
+  if (priv->sp == NULL) {
+    return FALSE;
+  }
+  if (kernal == NULL || basic == NULL) {
+    return FALSE;
+  }
+  priv->sp->setRoms(kernal, basic, chargen);
+
+}
+
 
 BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
 {
@@ -279,9 +290,9 @@ CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s)
   i->Released = (STRPTR)tuneInfo->infoString(2);
 
   i->SidsRequired = tuneInfo->sidChips();
-  i->SidModel = tuneInfoSidModelConvert(tuneInfo->sidModel(current));
-  i->ClockSpeed = tuneInfoClockSpeedConvert(tuneInfo->clockSpeed());
-  i->Compability = tuneInfoCompabilityConvert(tuneInfo->compatibility());
+  i->SidModel = tune_info_sid_model_convert(tuneInfo->sidModel(current));
+  i->ClockSpeed = tune_info_clock_speed_convert(tuneInfo->clockSpeed());
+  i->Compability = tune_info_compability_convert(tuneInfo->compatibility());
 
   return static_cast<CONST struct SidplayFpInfo *>(i);
 }
@@ -414,7 +425,7 @@ SidConfig::playback_t playback_to_sid_config (BYTE playback)
 }
 
 // for info
-static BYTE tuneInfoSidModelConvert(SidTuneInfo::model_t s)
+static BYTE tune_info_sid_model_convert(SidTuneInfo::model_t s)
 {
     if (s == SidTuneInfo::SIDMODEL_6581) {
         return SFI_SID_MODEL_MOS6581;
@@ -426,7 +437,7 @@ static BYTE tuneInfoSidModelConvert(SidTuneInfo::model_t s)
     return SFI_SID_MODEL_ANY;
 }
 
-static BYTE tuneInfoClockSpeedConvert(SidTuneInfo::clock_t c)
+static BYTE tune_info_clock_speed_convert(SidTuneInfo::clock_t c)
 {
   if (c == SidTuneInfo::CLOCK_PAL) {
     return SFI_CLOCK_PAL;
@@ -438,7 +449,7 @@ static BYTE tuneInfoClockSpeedConvert(SidTuneInfo::clock_t c)
   return SFI_CLOCK_UNKNOWN;
 }
 
-static BYTE tuneInfoCompabilityConvert(SidTuneInfo::compatibility_t c)
+static BYTE tune_info_compability_convert(SidTuneInfo::compatibility_t c)
 {
   if (c == SidTuneInfo::COMPATIBILITY_C64) {
     return SFI_COMPATIBILITY_C64;
@@ -452,7 +463,7 @@ static BYTE tuneInfoCompabilityConvert(SidTuneInfo::compatibility_t c)
   return -1;
 }
 
-
+#if 0
 bool load_file(const char *file_name, uint8_t *buf, LONG size)
 {
 	LONG actual = 0;
@@ -464,35 +475,6 @@ bool load_file(const char *file_name, uint8_t *buf, LONG size)
     if (actual != size) return false;
     return true;
 }
-
-void load_roms(sid_priv_t *p)
-{
-    if (p->basic == "" || p->kernal == "" || p->chargen == "") return;
-
-    uint8_t *chargen = new uint8_t [4096];
-    uint8_t *kernal = new uint8_t [8192];
-    uint8_t *basic = new uint8_t [8192];
-
-    if (chargen == NULL) goto rom_error;
-    if (kernal == NULL) goto rom_error;
-    if (basic == NULL) goto rom_error;
-
-    if (!load_file(p->basic.c_str(), basic, 8192)) {
-        goto rom_error;
-    }
-    if (!load_file(p->kernal.c_str(), kernal, 8192)) {
-        goto rom_error;
-    }
-    if (!load_file(p->chargen.c_str(), chargen, 4096)) {
-        goto rom_error;
-    }
-
-    p->sp->setRoms(kernal, basic, chargen);
-
-rom_error:
-    delete [] chargen;
-    delete [] kernal;
-    delete [] basic;
-}
+#endif
 
 } /* extern "C" */

@@ -48,6 +48,7 @@ static const APTR FuncTable[] =
 	(APTR)   sid_create_taglist,
 	(APTR)   sid_create_tags,
 	(APTR)   sid_free,
+    (APTR)   sid_set_roms,
 	(APTR)   sid_init,
 	(APTR)   sid_play,
 	(APTR)   sid_tune_info,

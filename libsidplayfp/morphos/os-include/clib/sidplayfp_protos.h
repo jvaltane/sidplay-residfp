@@ -23,9 +23,6 @@ struct SidplayFpNew
     BOOL Filter;                  /** default FALSE */
     BOOL Digiboost;               /** default FALSE */
     BYTE Playback;                /** default MONO */
-    STRPTR RomKernal;             /** default NULL */
-    STRPTR RomBasic;              /** default NULL */
-    STRPTR RomChargen;            /** default NULL */
     FLOAT ResidBias;              /** default 0.5 */
     FLOAT ResidFpFilterCurve6581; /** default 0.5 */
     FLOAT ResidFpFilterCurve8580; /** default 0.5 */
@@ -64,6 +61,7 @@ struct SidplayFpNew
 #define SFI_COMPATIBILITY_R64 2
 #define SFI_COMPATIBILITY_BASIC 3
 
+/* tags */
 #define SFA_DUMMY                  (TAG_USER + 0x4000)
 #define SFA_Emulation              (SFNA_DUMMY + 1)
 #define SFA_SidModel               (SFNA_DUMMY + 2)
@@ -74,14 +72,11 @@ struct SidplayFpNew
 #define SFA_SamplingMethod         (SFNA_DUMMY + 7)
 #define SFA_Filter                 (SFNA_DUMMY + 8)
 #define SFA_Digiboost              (SFNA_DUMMY + 9)
-#define SFA_RomKernal              (SFNA_DUMMY + 10)
-#define SFA_RomBasic               (SFNA_DUMMY + 11)
-#define SFA_RomChargen             (SFNA_DUMMY + 12)
-#define SFA_ResidBias              (SFNA_DUMMY + 13)
-#define SFA_ResidFpFilterCurve6581 (SFNA_DUMMY + 14)
-#define SFA_ResidFpFilterCurve8580 (SFNA_DUMMY + 15)
-#define SFA_AudioFrequency         (SFNA_DUMMY + 16)
-#define SFA_Database               (SFNA_DUMMY + 17)
+#define SFA_ResidBias              (SFNA_DUMMY + 10)
+#define SFA_ResidFpFilterCurve6581 (SFNA_DUMMY + 11)
+#define SFA_ResidFpFilterCurve8580 (SFNA_DUMMY + 12)
+#define SFA_AudioFrequency         (SFNA_DUMMY + 13)
+#define SFA_Database               (SFNA_DUMMY + 14)
 
 struct SidplayFpInfo
 {
@@ -139,8 +134,23 @@ struct SidplayFp *SidplayFpCreateTags( Tag, ... );
 void SidplayFpFree( struct SidplayFp *Player );
 
 /**
- * Initializes player with given SID-data. After load it is possible to check information
- * from players SidplayFpInfo struct. It is safe to free SidData after call.
+ * Sets rom files to player. Optional function. Required only for basic tunes.
+ * It is safe to free allocated memory for kernal, basic and chagen right
+ * after call. Settings roms before init is also safe.
+ *
+ * Player
+ * Kernal - kernal rom. Size should be exacly 8192 bytes
+ * Basic - basic rom. Size should be exacly 8192 bytes
+ * Chargen - chargen rom. Can be NULL. If set, size should be exacly 4096 bytes
+ *
+ * returns: TRUE if success
+ */
+BOOL SidplayFpSetRoms( struct SidplayFp *Player, CONST UBYTE *Kernal, CONST UBYTE *Basic, CONST UBYTE *Chargen);
+
+/**
+ * Initializes player with given SID-data. After load it is possible to check
+ * information from players SidplayFpInfo struct. It is safe to free SidData
+ * after call.
  *
  * Player - allocated SidplayFp struct
  * SidData - whole SID-file in memory.
@@ -151,8 +161,14 @@ void SidplayFpFree( struct SidplayFp *Player );
 BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
 
 /**
- * Get current song information.
+ * Get current song information. Result is valid between init and free. There
+ * are some subtune related information. After chancing subtune this shoould be
+ * called again.
  *
+ * Player
+ *
+ * returns: const pointer to struct SidplayFpInfo. Changing or freeing it is not
+ *  alloved..
  */
 CONST struct SidplayFpInfo *SidplayFpInfo( struct SidplayFp *Player );
 

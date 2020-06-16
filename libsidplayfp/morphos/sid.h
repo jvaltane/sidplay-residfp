@@ -12,6 +12,7 @@ struct SidplayFp *sid_create_taglist (struct TagItem *item);
 struct SidplayFp *sid_create_tags (Tag, ...);
 void sid_free (struct SidplayFp *s);
 
+BOOL sid_set_roms(struct SidplayFp *s, CONST UBYTE *kernal, CONST UBYTE *basic, CONST UBYTE *chargen);
 BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len);
 LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len);
 
