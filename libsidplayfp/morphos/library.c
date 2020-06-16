@@ -1,7 +1,6 @@
 #include <exec/resident.h>
 
 #include <proto/exec.h>
-#include <proto/dos.h>
 
 #include "library.h"
 #include "sid.h"
@@ -211,7 +210,6 @@ static BPTR LIB_Close(void)
 		CallFuncArray(__dtrslist);
 		SegList = LibBase->SegList;
 		RemoveLibrary(LibBase);
-        CloseLibrary((struct Library *)DOSBase);
 	}
 	Permit();
 
@@ -233,7 +231,6 @@ static struct Library *LIB_Open(void)
 
 	if (LibBase->Library.lib_OpenCnt == 1)
 	{
-        DOSBase = (struct DosLibrary *)OpenLibrary("dos.library", 0L);
 		CallFuncArray(__ctrslist);
 	}
 

@@ -8,7 +8,6 @@
 
 extern "C" {
 #include <proto/exec.h>
-#include <proto/dos.h>
 }
 
 #include <string>
@@ -51,8 +50,6 @@ static SidConfig::playback_t playback_to_sid_config (BYTE playback);
 static BYTE tune_info_sid_model_convert(SidTuneInfo::model_t s);
 static BYTE tune_info_clock_speed_convert(SidTuneInfo::clock_t c);
 static BYTE tune_info_compability_convert(SidTuneInfo::compatibility_t c);
-
-//static bool load_file(const char *file_name, uint8_t *buf, LONG size);
 
 struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 {
@@ -478,19 +475,5 @@ static BYTE tune_info_compability_convert(SidTuneInfo::compatibility_t c)
   }
   return -1;
 }
-
-#if 0
-bool load_file(const char *file_name, uint8_t *buf, LONG size)
-{
-	LONG actual = 0;
-	BPTR fh = 0;
-    fh = Open(file_name, MODE_OLDFILE);
-    if (fh == 0) return false;
-    actual = Read(fh, buf, size);
-    Close(fh);
-    if (actual != size) return false;
-    return true;
-}
-#endif
 
 } /* extern "C" */
