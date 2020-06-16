@@ -8,12 +8,31 @@
 
 extern "C" {
 #include <proto/exec.h>
+#include <proto/utility.h>
 }
 
 #include <string>
 #include <stdlib.h>
 
 #include "sid.h"
+
+struct SidplayFpNew
+{
+    BYTE Emulation;
+    BYTE SidModel;
+    BOOL SidModelForce;
+    BYTE MachineType;
+    BOOL MachineTypeForce;
+    BYTE CiaModel;
+    BYTE SamplingMethod;
+    BOOL Filter;
+    BOOL Digiboost;
+    BYTE Playback;
+    FLOAT ResidBias;
+    FLOAT ResidFpFilterCurve6581;
+    FLOAT ResidFpFilterCurve8580;
+    ULONG AudioFrequency;
+};
 
 typedef struct {
   sidplayfp *sp;
@@ -40,6 +59,8 @@ typedef struct {
 
 extern "C" {
 
+static struct SidplayFp *create (struct SidplayFpNew *sfn);
+
 static bool is_sidbuilder_valid(sidbuilder *b);
 static SidConfig::sid_model_t sid_model_to_sid_config (BYTE sid_model);
 static SidConfig::c64_model_t c64_model_to_sid_config (BYTE c64_model);
@@ -51,7 +72,7 @@ static BYTE tune_info_sid_model_convert(SidTuneInfo::model_t s);
 static BYTE tune_info_clock_speed_convert(SidTuneInfo::clock_t c);
 static BYTE tune_info_compability_convert(SidTuneInfo::compatibility_t c);
 
-struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
+struct SidplayFp *create (struct SidplayFpNew *sfn)
 {
   struct SidplayFp *s = static_cast<struct SidplayFp *> (AllocVec(sizeof(struct SidplayFp), MEMF_PUBLIC|MEMF_CLEAR));
   if (s == NULL) {
@@ -78,6 +99,11 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
     sid_free(s);
 	return NULL;
   }
+  priv->tune = new SidTune (0);
+  if (priv->tune == NULL) {
+    sid_free(s);
+    return NULL;
+  }
 
   priv->emulation = sfn->Emulation;
   priv->sid_model = sid_model_to_sid_config (sfn->SidModel);
@@ -102,12 +128,29 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
 
 struct SidplayFp *sid_create_taglist (struct TagItem *Item)
 {
-    return 0;
+    struct SidplayFpNew sfn;
+
+    sfn.Emulation = (BYTE)GetTagData(SFA_Emulation, SF_EMULATION_RESIDFP, Item);
+    sfn.SidModel = (BYTE)GetTagData(SFA_SidModel, SF_SID_MODEL_MOS6581, Item);
+    sfn.SidModelForce = (BOOL)GetTagData(SFA_SidModelForce, FALSE, Item);
+    sfn.MachineType = (BYTE)GetTagData(SFA_MachineType, SF_MACHINE_TYPE_PAL, Item);
+    sfn.MachineTypeForce = (BOOL)GetTagData(SFA_MachineTypeForce, FALSE, Item);
+    sfn.CiaModel = (BYTE)GetTagData(SFA_CiaModel, SF_CIA_MODEL_MOS6526, Item);
+    sfn.SamplingMethod = (BYTE)GetTagData(SFA_SamplingMethod, SF_SAMPLING_METHOD_INTERPOLATE, Item);
+    sfn.Filter = (BOOL)GetTagData(SFA_Filter, FALSE, Item);
+    sfn.Digiboost = (BOOL)GetTagData(SFA_Digiboost, FALSE, Item);
+    sfn.Playback = (BYTE)GetTagData(SFA_Playback, SF_PLAYBACK_MONO, Item);
+    sfn.ResidBias = (FLOAT)GetTagData(SFA_ResidBias, 0.5f, Item);
+    sfn.ResidFpFilterCurve6581 = (FLOAT)GetTagData(SFA_ResidFpFilterCurve6581, 0.5f, Item);
+    sfn.ResidFpFilterCurve8580 = (FLOAT)GetTagData(SFA_ResidFpFilterCurve8580, 0.5f, Item);
+    sfn.AudioFrequency = GetTagData(SFA_AudioFrequency, 44100, Item);
+
+    return create(&sfn);
 }
 
-struct SidplayFp *sid_create_tags ( Tag, ...)
+struct SidplayFp *sid_create_tags ( Tag tag1, ...)
 {
-    return 0;
+    return sid_create_taglist ((struct TagItem *)&tag1);
 }
 
 void sid_free (struct SidplayFp *s)
@@ -124,6 +167,8 @@ void sid_free (struct SidplayFp *s)
         delete priv->tune;
         priv->tune = NULL;
       }
+      delete priv->config.sidEmulation;
+      priv->config.sidEmulation = NULL;
       if (priv->sp) {
         delete priv->sp;
         priv->sp = NULL;
@@ -165,25 +210,20 @@ BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
   s->Loaded = FALSE;
 
   sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
-  if (priv->tune) {
-    delete priv->tune;
-    priv->tune = NULL;
-  }
-  priv->tune = new SidTune (0);
   if (priv->tune == NULL) {
     return FALSE;
   }
   priv->tune->read (data, data_len);
+  priv->config = priv->sp->config ();
   priv->tune->selectSong (priv->current_subtune);
 
   bool rc = priv->sp->load (priv->tune);
   if (!rc) {
     return FALSE;
   }
-  priv->config = priv->sp->config ();
 
   sidbuilder *sb = NULL;
-  if (priv->emulation == SFN_EMULATION_RESID) {
+  if (priv->emulation == SF_EMULATION_RESID) {
     ReSIDBuilder *rsb = new ReSIDBuilder ("ReSID");
     if (is_sidbuilder_valid(rsb) == false) {
       return FALSE;
@@ -238,6 +278,7 @@ BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
   conf.samplingMethod = priv->sampling_method;
 
   sb->filter(priv->filter); // is this really needed
+  delete conf.sidEmulation;
   conf.sidEmulation = sb;
 
   rc = priv->sp->config (conf);
@@ -340,25 +381,31 @@ UWORD sid_subtunes (struct SidplayFp *s)
   return 0;
 }
 
-BOOL sid_subtune_set (struct SidplayFp *s, UWORD subtune)
+BOOL sid_subtune_set (struct SidplayFp *sf, UWORD subtune)
 {
   UWORD subtunes = 0;
-  if (s == NULL) {
+  UWORD csubtune = 0;
+  if (sf == NULL) {
     return FALSE;
   }
-  if (s->Loaded != TRUE) {
+  if (sf->Loaded != TRUE) {
     return FALSE;
   }
-  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  sid_priv_t *priv = static_cast<sid_priv_t *> (sf->PrivateData);
   if (priv == NULL) {
     return FALSE;
   }
-  subtunes = sid_subtunes (s);
+  subtunes = sid_subtunes (sf);
   if (subtunes == 0 || subtunes < subtune || subtune < 0) {
     return FALSE;
   }
-  priv->current_subtune = subtune;
-  return 0;
+  csubtune = priv->tune->selectSong (subtune);
+  if (0 == csubtune) {
+    return FALSE;
+  }
+  priv->current_subtune = csubtune;
+
+  return TRUE;
 }
 
 CONST_STRPTR sid_tune_md5 (struct SidplayFp *s)
@@ -393,7 +440,7 @@ bool is_sidbuilder_valid(sidbuilder *b)
 
 SidConfig::sid_model_t sid_model_to_sid_config(BYTE sid_model)
 {
-  if (sid_model == SFN_SID_MODEL_MOS8580) {
+  if (sid_model == SF_SID_MODEL_MOS8580) {
     return SidConfig::MOS8580;
   }
   return SidConfig::MOS6581;
@@ -401,13 +448,13 @@ SidConfig::sid_model_t sid_model_to_sid_config(BYTE sid_model)
 
 SidConfig::c64_model_t c64_model_to_sid_config(BYTE c64_model)
 {
-  if (c64_model == SFN_MACHINE_TYPE_NTSC) {
+  if (c64_model == SF_MACHINE_TYPE_NTSC) {
     return SidConfig::NTSC;
-  } else if (c64_model == SFN_MACHINE_TYPE_PAL_M) {
+  } else if (c64_model == SF_MACHINE_TYPE_PAL_M) {
     return SidConfig::PAL_M;
-  } else if (c64_model == SFN_MACHINE_TYPE_OLD_NTSC) {
+  } else if (c64_model == SF_MACHINE_TYPE_OLD_NTSC) {
     return SidConfig::OLD_NTSC;
-  } else if (c64_model == SFN_MACHINE_TYPE_DREAN) {
+  } else if (c64_model == SF_MACHINE_TYPE_DREAN) {
     return SidConfig::DREAN;
   }
   return SidConfig::PAL;
@@ -415,7 +462,7 @@ SidConfig::c64_model_t c64_model_to_sid_config(BYTE c64_model)
 
 SidConfig::cia_model_t cia_model_to_sid_config(BYTE cia_model)
 {
-  if (cia_model == SFN_CIA_MODEL_MOS8521) {
+  if (cia_model == SF_CIA_MODEL_MOS8521) {
     return SidConfig::MOS8521;
   }
   return SidConfig::MOS6526;
@@ -423,7 +470,7 @@ SidConfig::cia_model_t cia_model_to_sid_config(BYTE cia_model)
 
 SidConfig::sampling_method_t sampling_method_to_sid_config(BYTE sampling_method)
 {
-  if (sampling_method == SFN_SAMPLING_METHOD_RESAMPLE_INTERPOLATE) {
+  if (sampling_method == SF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE) {
     return SidConfig::RESAMPLE_INTERPOLATE;
   }
   return SidConfig::INTERPOLATE;
@@ -431,7 +478,7 @@ SidConfig::sampling_method_t sampling_method_to_sid_config(BYTE sampling_method)
 
 SidConfig::playback_t playback_to_sid_config (BYTE playback)
 {
-  if (playback == SFN_PLAYBACK_MONO) {
+  if (playback == SF_PLAYBACK_MONO) {
     return SidConfig::MONO;
   }
   return SidConfig::STEREO;

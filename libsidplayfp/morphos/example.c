@@ -21,23 +21,6 @@ int main (int argc, char **argv)
     LONG sidSize = 0;
     LONG actualSize = 0;
     UBYTE *sid = NULL;
-	struct SidplayFpNew sfn =
-	{
-		SFN_EMULATION_RESIDFP,
-		SFN_SID_MODEL_MOS6581,
-		FALSE,
-		SFN_MACHINE_TYPE_PAL,
-		FALSE,
-		SFN_CIA_MODEL_MOS6526,
-		SFN_SAMPLING_METHOD_INTERPOLATE,
-		FALSE,
-		FALSE,
-		SFN_PLAYBACK_MONO,
-		0.5f,
-		0.5f,
-		0.5f,
-		44100,
-	};
 
     if (argc != 2) {
         printf("example <sid file>\n");
@@ -82,7 +65,7 @@ int main (int argc, char **argv)
     fh = 0;
 
     printf("Create player\n");
-    sf = SidplayFpCreate(&sfn);
+    sf = SidplayFpCreate(SFA_Emulation, SF_EMULATION_RESID, TAG_END);
 	if (sf == NULL) {
 		fprintf(stderr, "Error: Could not create player\n");
 		retval = 1;

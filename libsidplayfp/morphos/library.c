@@ -1,6 +1,7 @@
 #include <exec/resident.h>
 
 #include <proto/exec.h>
+#include <proto/utility.h>
 
 #include "library.h"
 #include "sid.h"
@@ -43,7 +44,6 @@ static const APTR FuncTable[] =
 	// Start sysv block for user functions.
 
 	(APTR)   FUNCARRAY_32BIT_SYSTEMV,
-	(APTR)   sid_create,
 	(APTR)   sid_create_taglist,
 	(APTR)   sid_create_tags,
 	(APTR)   sid_free,
@@ -208,7 +208,8 @@ static BPTR LIB_Close(void)
 	if (LibBase->Library.lib_Flags & LIBF_DELEXP && LibBase->Library.lib_OpenCnt == 0)
 	{
 		CallFuncArray(__dtrslist);
-		SegList = LibBase->SegList;
+        CloseLibrary((struct Library *)UtilityBase);
+        SegList = LibBase->SegList;
 		RemoveLibrary(LibBase);
 	}
 	Permit();
@@ -231,6 +232,7 @@ static struct Library *LIB_Open(void)
 
 	if (LibBase->Library.lib_OpenCnt == 1)
 	{
+        UtilityBase = OpenLibrary("utility.library", 0L);
 		CallFuncArray(__ctrslist);
 	}
 

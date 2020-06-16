@@ -7,7 +7,6 @@ extern "C" {
 
 #include <clib/sidplayfp_protos.h>
 
-struct SidplayFp *sid_create (struct SidplayFpNew *sfn);
 struct SidplayFp *sid_create_taglist (struct TagItem *item);
 struct SidplayFp *sid_create_tags (Tag, ...);
 void sid_free (struct SidplayFp *s);

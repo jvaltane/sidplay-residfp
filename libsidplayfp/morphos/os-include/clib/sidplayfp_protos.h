@@ -8,43 +8,22 @@
 # include <utility/tagitem.h>
 #endif
 
-/**
- * Pass config to player allocator.
- */
-struct SidplayFpNew
-{
-    BYTE Emulation;               /** default RESIDFP */
-    BYTE SidModel;                /** default MOS6581 */
-    BOOL SidModelForce;           /** default FALSE */
-    BYTE MachineType;             /** default PAL */
-    BOOL MachineTypeForce;        /** default FALSE */
-    BYTE CiaModel;                /** default MOS6526 */
-    BYTE SamplingMethod;          /** default INTERPOLATE */
-    BOOL Filter;                  /** default FALSE */
-    BOOL Digiboost;               /** default FALSE */
-    BYTE Playback;                /** default MONO */
-    FLOAT ResidBias;              /** default 0.5 */
-    FLOAT ResidFpFilterCurve6581; /** default 0.5 */
-    FLOAT ResidFpFilterCurve8580; /** default 0.5 */
-    ULONG AudioFrequency;         /** default 44100 */
-};
-
-/* SidplayFpNew defines */
-#define SFN_EMULATION_RESIDFP 0
-#define SFN_EMULATION_RESID 1
-#define SFN_SID_MODEL_MOS6581 0
-#define SFN_SID_MODEL_MOS8580 1
-#define SFN_MACHINE_TYPE_PAL 0
-#define SFN_MACHINE_TYPE_NTSC 1
-#define SFN_MACHINE_TYPE_PAL_M 2
-#define SFN_MACHINE_TYPE_OLD_NTSC 3
-#define SFN_MACHINE_TYPE_DREAN 4
-#define SFN_CIA_MODEL_MOS6526 0
-#define SFN_CIA_MODEL_MOS8521 1
-#define SFN_SAMPLING_METHOD_INTERPOLATE 0
-#define SFN_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
-#define SFN_PLAYBACK_MONO 0
-#define SFN_PLAYBACK_STEREO 1
+/* defines */
+#define SF_EMULATION_RESIDFP 0
+#define SF_EMULATION_RESID 1
+#define SF_SID_MODEL_MOS6581 0
+#define SF_SID_MODEL_MOS8580 1
+#define SF_MACHINE_TYPE_PAL 0
+#define SF_MACHINE_TYPE_NTSC 1
+#define SF_MACHINE_TYPE_PAL_M 2
+#define SF_MACHINE_TYPE_OLD_NTSC 3
+#define SF_MACHINE_TYPE_DREAN 4
+#define SF_CIA_MODEL_MOS6526 0
+#define SF_CIA_MODEL_MOS8521 1
+#define SF_SAMPLING_METHOD_INTERPOLATE 0
+#define SF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
+#define SF_PLAYBACK_MONO 0
+#define SF_PLAYBACK_STEREO 1
 
 /* SidplayFpInfo defines */
 #define SFI_CLOCK_UNKNOWN 0
@@ -62,19 +41,20 @@ struct SidplayFpNew
 
 /* tags */
 #define SFA_DUMMY                  (TAG_USER + 0x4000)
-#define SFA_Emulation              (SFNA_DUMMY + 1)
-#define SFA_SidModel               (SFNA_DUMMY + 2)
-#define SFA_SidModelForce          (SFNA_DUMMY + 3)
-#define SFA_MachineType            (SFNA_DUMMY + 4)
-#define SFA_MachineTypeForce       (SFNA_DUMMY + 5)
-#define SFA_CiaModel               (SFNA_BUMMY + 6)
-#define SFA_SamplingMethod         (SFNA_DUMMY + 7)
-#define SFA_Filter                 (SFNA_DUMMY + 8)
-#define SFA_Digiboost              (SFNA_DUMMY + 9)
-#define SFA_ResidBias              (SFNA_DUMMY + 10)
-#define SFA_ResidFpFilterCurve6581 (SFNA_DUMMY + 11)
-#define SFA_ResidFpFilterCurve8580 (SFNA_DUMMY + 12)
-#define SFA_AudioFrequency         (SFNA_DUMMY + 13)
+#define SFA_Emulation              (SFA_DUMMY + 1)
+#define SFA_SidModel               (SFA_DUMMY + 2)
+#define SFA_SidModelForce          (SFA_DUMMY + 3)
+#define SFA_MachineType            (SFA_DUMMY + 4)
+#define SFA_MachineTypeForce       (SFA_DUMMY + 5)
+#define SFA_CiaModel               (SFA_DUMMY + 6)
+#define SFA_SamplingMethod         (SFA_DUMMY + 7)
+#define SFA_Filter                 (SFA_DUMMY + 8)
+#define SFA_Digiboost              (SFA_DUMMY + 9)
+#define SFA_Playback               (SFA_DUMMY + 10)
+#define SFA_ResidBias              (SFA_DUMMY + 11)
+#define SFA_ResidFpFilterCurve6581 (SFA_DUMMY + 12)
+#define SFA_ResidFpFilterCurve8580 (SFA_DUMMY + 13)
+#define SFA_AudioFrequency         (SFA_DUMMY + 14)
 
 struct SidplayFpInfo
 {
@@ -102,27 +82,18 @@ struct SidplayFp
 };
 
 /**
- * Allocates player.
- *
- * NewPlayer - struct SidplayFpNew to initialize player
- *
- * returns: struct SidplayFp allocated by library. Use SidplayFpFree() to free it
- */
-struct SidplayFp *SidplayFpCreate( struct SidplayFpNew *NewPlayer );
-
-/**
  * Allocates player with Tags. If no tags given default values used instead.
  *
- * NewPlayer - struct SidplayFpNew to initialize player
+ * Items - Tag item list.
  *
  * returns: struct SidplayFp allocated by library. Use SidplayFpFree() to free it
  */
-struct SidplayFp *SidplayFpCreateTagList( struct TagItem *Item );
+struct SidplayFp *SidplayFpCreateA( struct TagItem *Items );
 
 /**
  * Wrapper for SidplayFpCreateTagList()
  */
-struct SidplayFp *SidplayFpCreateTags( Tag, ... );
+struct SidplayFp *SidplayFpCreate( Tag, ... );
 
 /**
  * Free player
