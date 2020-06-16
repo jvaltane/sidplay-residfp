@@ -27,7 +27,6 @@ struct SidplayFpNew
     FLOAT ResidFpFilterCurve6581; /** default 0.5 */
     FLOAT ResidFpFilterCurve8580; /** default 0.5 */
     ULONG AudioFrequency;         /** default 44100 */
-    STRPTR Database;              /** default NULL */
 };
 
 /* SidplayFpNew defines */
@@ -76,7 +75,6 @@ struct SidplayFpNew
 #define SFA_ResidFpFilterCurve6581 (SFNA_DUMMY + 11)
 #define SFA_ResidFpFilterCurve8580 (SFNA_DUMMY + 12)
 #define SFA_AudioFrequency         (SFNA_DUMMY + 13)
-#define SFA_Database               (SFNA_DUMMY + 14)
 
 struct SidplayFpInfo
 {
@@ -134,8 +132,8 @@ struct SidplayFp *SidplayFpCreateTags( Tag, ... );
 void SidplayFpFree( struct SidplayFp *Player );
 
 /**
- * Sets rom files to player. Optional function. Required only for basic tunes.
- * It is safe to free allocated memory for kernal, basic and chagen right
+ * Sets rom files to player. Optional function. Required only for basic based
+ * tunes. It is safe to free allocated memory for kernal, basic and chagen right
  * after call. Settings roms before init is also safe.
  *
  * Player
@@ -148,9 +146,8 @@ void SidplayFpFree( struct SidplayFp *Player );
 BOOL SidplayFpSetRoms( struct SidplayFp *Player, CONST UBYTE *Kernal, CONST UBYTE *Basic, CONST UBYTE *Chargen);
 
 /**
- * Initializes player with given SID-data. After load it is possible to check
- * information from players SidplayFpInfo struct. It is safe to free SidData
- * after call.
+ * Initializes player with given SID-data. It is safe to free SidData after
+ * call.
  *
  * Player - allocated SidplayFp struct
  * SidData - whole SID-file in memory.
@@ -161,9 +158,8 @@ BOOL SidplayFpSetRoms( struct SidplayFp *Player, CONST UBYTE *Kernal, CONST UBYT
 BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
 
 /**
- * Get current song information. Result is valid between init and free. There
- * are some subtune related information. After chancing subtune this shoould be
- * called again.
+ * Get current song information. Result is valid after init. Changing subtune
+ * call this again.
  *
  * Player
  *
@@ -191,10 +187,11 @@ UWORD SidplayFpCurrentSubtune( struct SidplayFp *Player );
 UWORD SidplayFpSubtunes( struct SidplayFp *Player );
 
 /**
- * Set SID subtune
+ * Set SID subtune. Subtune numbering starts from 1. 0 is special case and sets
+ * default tune or tune number 1 depends of SID-file type.
  *
  * Player - allocated SidplayFp struct
- * Subtune - SIDs subtune starting from 1. 0 sets default tune or tune number 1.
+ * Subtune - SIDs subtune
  *
  * returns: TRUE if success
  */
@@ -202,33 +199,25 @@ BOOL SidplayFpSetSubtune( struct SidplayFp *Player, UWORD Subtune );
 
 /**
  * Fill sample buffer with signed 16bit audio samples. Library tries fill as
- * many samples as SampleCount tells there is space.
+ * many samples as SampleCount tells.
  *
  * Player - allocated SidplayFp struct
  * SampleBuffer - Preallocated buffer of samples to library to fill
  * SampleCount - SampleBuffer size in samples.
  *
- * returns: Number of samples really put to SampleBuffer. In case of error negative value.
+ * returns: Number of samples really put to SampleBuffer. In case of error
+ *  negative value.
  */
 LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCount );
 
 /**
- * Get current subtune length. Requires HVSC database.
+ * Get tunes MD5 sum. MD5 sum can be used for example to get song length from
+ * HVSC database. This should be called after init or if subtune is changed.
  *
- * Player - allocated SidplayFp struct
+ * Player
  *
- * returns: subtune length in ms. Negative if error.
+ * returns: MD5 sum of tune. NULL if fails.
  */
-LONG SidplayFpCurrentSubtuneLength( struct SidplayFp *Player );
-
-/**
- * Get current subtune length. Requires HVSC database.
- *
- * Player - allocated SidplayFp struct
- * Subtune - subtune to get length for
- *
- * returns: subtune length in ms. Negative if error.
- */
-LONG SidplayFpSubtuneLength( struct SidplayFp *Player, UWORD Subtune );
+CONST_STRPTR SidplayFpTuneMD5( struct SidplayFp *Player );
 
 #endif /* SIDPLAYFP_PROTOS_H */

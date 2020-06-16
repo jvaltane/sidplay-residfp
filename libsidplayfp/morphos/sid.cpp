@@ -36,6 +36,7 @@ typedef struct {
   std::string database;
   uint32_t audio_frequency;
   struct SidplayFpInfo *info;
+  int32_t current_subtune;
 } sid_priv_t;
 
 extern "C" {
@@ -95,7 +96,7 @@ struct SidplayFp *sid_create (struct SidplayFpNew *sfn)
   priv->residfp_filter_curve_6581 = sfn->ResidFpFilterCurve6581;
   priv->residfp_filter_curve_8580 = sfn->ResidFpFilterCurve8580;
   priv->audio_frequency = sfn->AudioFrequency;
-  priv->database = sfn->Database;
+  priv->current_subtune = 0;
 
   s->PrivateData = (APTR)priv;
 
@@ -154,7 +155,7 @@ BOOL sid_set_roms(struct SidplayFp *s, CONST UBYTE *kernal, CONST UBYTE *basic, 
     return FALSE;
   }
   priv->sp->setRoms(kernal, basic, chargen);
-
+  return TRUE;
 }
 
 
@@ -176,7 +177,7 @@ BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len)
     return FALSE;
   }
   priv->tune->read (data, data_len);
-  priv->tune->selectSong (0);
+  priv->tune->selectSong (priv->current_subtune);
 
   bool rc = priv->sp->load (priv->tune);
   if (!rc) {
@@ -279,6 +280,9 @@ CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s)
   if (priv->info == NULL) {
     return NULL;
   }
+  if (priv->tune == NULL) {
+    return NULL;
+  }
   const SidTuneInfo *tuneInfo = priv->tune->getInfo();
   if (tuneInfo == NULL) {
     return NULL;
@@ -309,6 +313,9 @@ UWORD sid_current_subtune (struct SidplayFp *s)
   if (priv == NULL) {
     return 0;
   }
+  if (priv->info == NULL) {
+    return 0;
+  }
 
   const SidTuneInfo *tuneInfo = priv->tune->getInfo();
   if (tuneInfo) return static_cast<UWORD>(tuneInfo->currentSong());
@@ -328,6 +335,9 @@ UWORD sid_subtunes (struct SidplayFp *s)
   if (priv == NULL) {
     return 0;
   }
+  if (priv->info == NULL) {
+    return 0;
+  }
   const SidTuneInfo *tuneInfo = priv->tune->getInfo();
   if (tuneInfo) return static_cast<UWORD>(tuneInfo->songs());
   return 0;
@@ -335,35 +345,41 @@ UWORD sid_subtunes (struct SidplayFp *s)
 
 BOOL sid_subtune_set (struct SidplayFp *s, UWORD subtune)
 {
+  UWORD subtunes = 0;
   if (s == NULL) {
     return FALSE;
   }
   if (s->Loaded != TRUE) {
     return FALSE;
   }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return FALSE;
+  }
+  subtunes = sid_subtunes (s);
+  if (subtunes == 0 || subtunes < subtune || subtune < 0) {
+    return FALSE;
+  }
+  priv->current_subtune = subtune;
   return 0;
 }
 
-LONG sid_subtune_length (struct SidplayFp *s, UWORD subtune)
+CONST_STRPTR sid_tune_md5 (struct SidplayFp *s)
 {
   if (s == NULL) {
-    return -1;
+    return NULL;
   }
   if (s->Loaded != TRUE) {
-    return -1;
+    return NULL;
   }
-  return 0;
-}
-
-LONG sid_subtune_length_current (struct SidplayFp *s)
-{
-  if (s == NULL) {
-    return -1;
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    return 0;
   }
-  if (s->Loaded != TRUE) {
-    return -1;
+  if (priv->tune == NULL) {
+    return NULL;
   }
-  return 0;
+  return (CONST_STRPTR)priv->tune->createMD5New(0); // creates interrnally new
 }
 
 /* static */

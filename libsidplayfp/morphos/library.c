@@ -55,8 +55,7 @@ static const APTR FuncTable[] =
 	(APTR)   sid_current_subtune,
 	(APTR)   sid_subtunes,
 	(APTR)   sid_subtune_set,
-	(APTR)   sid_subtune_length,
-	(APTR)   sid_subtune_length_current,
+	(APTR)   sid_tune_md5,
 	(APTR)   -1,
 
 	(APTR)   FUNCARRAY_END

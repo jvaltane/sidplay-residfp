@@ -13,6 +13,5 @@ SidplayFpInfo(sf)(sysv)
 SidplayFpCurrentSubtune(sf)(sysv)
 SidplayFpSubtunes(sf)(sysv)
 SidplayFpSetSubtune(sf,subtune)(sysv)
-SidplayFpSubtuneLength(sf,subtune)(sysv)
-SidplayFpCurrentSubtuneLength(sf)(sysv)
+SidplayFpTuneMD5(sf)(sysv)
 ##end

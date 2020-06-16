@@ -21,8 +21,7 @@ CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s);
 UWORD sid_current_subtune (struct SidplayFp *s);
 UWORD sid_subtunes (struct SidplayFp *s);
 BOOL sid_subtune_set (struct SidplayFp *s, UWORD subtune);
-LONG sid_subtune_length (struct SidplayFp *s, UWORD subtune);
-LONG sid_subtune_length_current (struct SidplayFp *s);
+CONST_STRPTR sid_tune_md5 (struct SidplayFp *s);
 
 #ifdef __cplusplus
 }

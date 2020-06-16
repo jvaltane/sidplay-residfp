@@ -37,7 +37,6 @@ int main (int argc, char **argv)
 		0.5f,
 		0.5f,
 		44100,
-		"database"
 	};
 
     if (argc != 2) {
@@ -100,10 +99,12 @@ int main (int argc, char **argv)
     sid = NULL;
 
     {
+        CONST_STRPTR md5 = SidplayFpTuneMD5(sf);
         CONST struct SidplayFpInfo *info = SidplayFpInfo(sf);
         if (info != NULL) {
             printf("Author: %s, Title: %s\n", info->Author?info->Author:"NULL", info->Title?info->Title:"NULL");
         }
+        printf("MD5: %s\n", md5?md5:"NULL");
         printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
     }
 
