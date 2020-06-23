@@ -328,7 +328,52 @@ LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len)
     s->Error = SFE_PLAYER_NOT_ALLOCATED;
     return -1;
   }
-  return priv->sp->play (buffer, buffer_len);
+  return static_cast<LONG>(priv->sp->play (buffer, buffer_len));
+}
+
+BOOL sid_mute (struct SidplayFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL mute)
+{
+  if (s == NULL) {
+    return FALSE;
+  }
+  if (s->Initialized != TRUE) {
+    s->Error = SFE_PLAYER_NOT_INITIALIZED;
+    return FALSE;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return FALSE;
+  }
+  if (priv->sp == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return FALSE;
+  }
+
+  priv->sp->mute (static_cast<unsigned int>(sid_number), static_cast<unsigned int>(voice_channel), mute?true:false);
+
+  return TRUE;
+}
+
+LONG sid_time (struct SidplayFp *s)
+{
+  if (s == NULL) {
+    return -1;
+  }
+  if (s->Initialized != TRUE) {
+    s->Error = SFE_PLAYER_NOT_INITIALIZED;
+    return -1;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return -1;
+  }
+  if (priv->sp == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return -1;
+  }
+  return static_cast<ULONG>(priv->sp->timeMs());
 }
 
 CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s)

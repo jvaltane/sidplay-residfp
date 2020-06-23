@@ -8,7 +8,7 @@
 # include <utility/tagitem.h>
 #endif
 
-/* defines */
+/* defines for tags */
 #define SF_EMULATION_RESIDFP 0
 #define SF_EMULATION_RESID 1
 #define SF_SID_MODEL_MOS6581 0
@@ -39,7 +39,82 @@
 #define SFI_COMPATIBILITY_R64 2
 #define SFI_COMPATIBILITY_BASIC 3
 
-/* Tags */
+/** Tags
+ *
+ * See also: SF_XXX defines.
+ *
+ * If tag is not given or its value is invalid default is used.
+ *
+ * SFA_Emulation
+ *
+ *   Type of emulation. Possible options are RESID or RESIDFP
+ *   Default: SF_EMULATION_RESIDFP
+ *
+ * SFA_SidModel
+ *
+ *   Type of SID model. Possible options MOS8580 or MOS6581
+ *   Default: SF_SID_MODEL_MOS6581
+ *
+ * SFA_SidModelForce
+ *
+ *   Forces the SID model and does not let player choose. Boolean value.
+ *   Default: FALSE
+ *
+ * SFA_MachineType
+ *
+ *   Machine type. Possible options PAL, NTSC, PAL_M, OLD_NTSC and DREAN.
+ *   Default: SF_MACHINE_TYPE_PAL
+ *
+ * SFA_MachineTypeForce
+ *
+ *   Forces the machine type and does not let player choose. Boolean value.
+ *   Default: FALSE
+ *
+ * SFA_CiaModel
+ *
+ *   CIA model. Possible options MOS6526 and MOS8521.
+ *   Default SF_CIA_MODEL_MOS6526
+ *
+ * SFA_SamplingMethod
+ *
+ *   Sampling method. INTERPOLATE and RESAMPLE_INTERPOLATE
+ *   Default: SF_SAMPLING_METHOD_INTERPOLATE
+ *
+ * SFA_Filter
+ *
+ *   Use filter. Boolean value.
+ *   Default value: FALSE
+ *
+ * SFA_Digiboost
+ *
+ *   Use SID digiboost. For MOS8580 only, Boolean value.
+ *   Defalt: FALSE
+ *
+ * SFA_Playback
+ *
+ *   Playback mode. MONO or STEREO
+ *   Default: SF_PLAYPACK_MONO
+ *
+ * SFA_ResidBias
+ *
+ *   Bias of the RESID. Floating point value.
+ *   Default: 0.5
+ *
+ * SFA_ResidFpFilterCurve6581
+ *
+ *   RESIDFPs MOS6581 filtere curve. Floating point value.
+ *   Default: 0.5
+ *
+ * SFA_ResidFpFilterCurve8580
+ *
+ *   RESIDFPs MOS8580 filtere curve. Floating point value.
+ *   Default: 0.5
+ *
+ * SFA_AudioFrequency
+ *
+ *   Frequency of the playback. Some reasonable unssigned intereg value.
+ *   Default: 44100
+ */
 #define SFA_DUMMY                  (TAG_USER + 0x4000)
 #define SFA_Emulation              (SFA_DUMMY + 1)
 #define SFA_SidModel               (SFA_DUMMY + 2)
@@ -178,13 +253,35 @@ BOOL SidplayFpSetSubtune( struct SidplayFp *Player, UWORD Subtune );
  * many samples as SampleCount tells.
  *
  * Player - allocated SidplayFp struct
- * SampleBuffer - Preallocated buffer of samples to library to fill
- * SampleCount - SampleBuffer size in samples.
+ * SampleBuffer - Preallocated buffer of samples to fill
+ * SampleCount - SampleBuffer size in samples
  *
  * returns: Number of samples really put to SampleBuffer. In case of error
  *  negative value.
  */
 LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCount );
+
+/**
+ * Mute or un mute voice channel of chosen SID. Three SIDs and voice channels
+ * are supported.
+ *
+ * Player
+ * SidNumber - Number of SID. Pssible values are 0-2.
+ * VoiceChannel - Number of channel to mute. SIDs has three channels so possible values 0-2
+ * Mute - TRUE to mute, FALSE to unmute
+ *
+ * returns: FALSE if fails.
+ */
+BOOL SidplayFpMute( struct SidplayFp *Player, UBYTE SidNumber, UBYTE VoiceChannel, BOOL Mute);
+
+/**
+ * Get current playing time.
+ *
+ * Player
+ *
+ * return: current playing time in ms. Negative if fails.
+ */
+LONG SidplayFpTime( struct SidplayFp *Player );
 
 /**
  * Get tunes MD5 sum. MD5 sum can be used for example to get song length from
@@ -195,5 +292,6 @@ LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCo
  * returns: MD5 sum of tune. NULL if fails.
  */
 CONST_STRPTR SidplayFpTuneMD5( struct SidplayFp *Player );
+
 
 #endif /* SIDPLAYFP_PROTOS_H */

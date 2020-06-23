@@ -14,6 +14,8 @@ void sid_free (struct SidplayFp *s);
 BOOL sid_set_roms(struct SidplayFp *s, CONST UBYTE *kernal, CONST UBYTE *basic, CONST UBYTE *chargen);
 BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len);
 LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len);
+BOOL sid_mute (struct SidplayFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL mute);
+LONG sid_time (struct SidplayFp *s);
 
 CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s);
 
