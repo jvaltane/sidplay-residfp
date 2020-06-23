@@ -1,17 +1,17 @@
 #include <proto/exec.h>
 #include <constructor.h>
 
-struct Library *SidplayFpBase;
+struct Library *PlaysidFpBase;
 
-static CONSTRUCTOR_P(init_SidplayFpBase, 101)
+static CONSTRUCTOR_P(init_PlaysidFpBase, 101)
 {
-	SidplayFpBase = OpenLibrary("sidplayfp.library", 0);
+	PlaysidFpBase = OpenLibrary("playsidfp.library", 0);
 
-	return (SidplayFpBase == NULL);
+	return (PlaysidFpBase == NULL);
 }
 
-static DESTRUCTOR_P(cleanup_SidplayFpBase, 101)
+static DESTRUCTOR_P(cleanup_PlaysidFpBase, 101)
 {
-	CloseLibrary(SidplayFpBase);
+	CloseLibrary(PlaysidFpBase);
 }
 

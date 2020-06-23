@@ -1,5 +1,5 @@
-#ifndef	__LIBSIDPLAYFP_LIBRARY_H__
-#define	__LIBSIDPLAYFP_LIBRARY_H__
+#ifndef	__LIBPLAYSIDFP_LIBRARY_H__
+#define	__LIBPLAYSIDFP_LIBRARY_H__
 
 #ifndef	DOS_DOS_H
 #include	<dos/dos.h>
@@ -10,10 +10,10 @@
 #endif
 
 #pragma pack(2)
-struct LibSidplayFpInitData
+struct LibPlaysidFpInitData
 {
 	UBYTE ln_Type_Init[4];
-	UBYTE	ln_Pri_Init[4];
+	UBYTE ln_Pri_Init[4];
 	UBYTE ln_Name_Init[2];
 	ULONG ln_Name_Content;
 	UBYTE lib_Flags_Init[4];
@@ -25,7 +25,7 @@ struct LibSidplayFpInitData
 };
 #pragma pack()
 
-struct LibSidplayFpLibrary
+struct LibPlaysidFpLibrary
 {
 	struct Library Library;
 	WORD           Pad;

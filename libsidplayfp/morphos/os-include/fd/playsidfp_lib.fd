@@ -1,0 +1,20 @@
+* "playsidfp.library"
+##base _PlaysidFpBase
+##bias 30
+##public
+PlaysidFpCreateA(items)(sysv)
+PlaysidFpCreate(tag,...)(sysv)
+PlaysidFpFree(sf)(sysv)
+PlaysidFpSetRoms(sf,kernal,basic,chargen)(sysv)
+PlaysidFpInit(sf,data,dataSize)(sysv)
+PlaysidFpPlay(sf,samples,sampleCount)(sysv)
+PlaysidFpSpeed(sf,percent)(sysv)
+PlaysidFpMute(sf,sid,voice,mute)(sysv)
+PlaysidFpFilter(sf,filter)(sysv)
+PlaysidFpTime(sf)(sysv)
+PlaysidFpInfo(sf)(sysv)
+PlaysidFpCurrentSubtune(sf)(sysv)
+PlaysidFpSubtunes(sf)(sysv)
+PlaysidFpSetSubtune(sf,subtune)(sysv)
+PlaysidFpTuneMD5(sf)(sysv)
+##end

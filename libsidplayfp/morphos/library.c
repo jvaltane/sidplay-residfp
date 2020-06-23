@@ -4,11 +4,11 @@
 #include <proto/utility.h>
 
 #include "library.h"
-#include "sid.h"
+#include "playsidcpp.h"
 
 #define COMPILE_VERSION  1
 #define COMPILE_REVISION 0
-#define COMPILE_DATE     "(15.6.2020)"
+#define COMPILE_DATE     "(24.6.2020)"
 #define PROGRAM_VER      "1.0"
 
 /**********************************************************************
@@ -19,14 +19,14 @@ static struct Library *LIB_Open(void);
 static BPTR            LIB_Close(void);
 static BPTR            LIB_Expunge(void);
 static ULONG           LIB_Reserved(void);
-static struct Library *LIB_Init(struct LibSidplayFpLibrary *LibBase, BPTR SegList, struct ExecBase *LibSidplayFpSysBase);
+static struct Library *LIB_Init(struct LibPlaysidFpLibrary *LibBase, BPTR SegList, struct ExecBase *LibPlaysidFpSysBase);
 
 /**********************************************************************
 	Library Header
 **********************************************************************/
 
-static const char VerString[]	= "\0$VER: sidplayfp.library " PROGRAM_VER " "COMPILE_DATE;
-static const char LibName[]	= "sidplayfp.library";
+static const char VerString[]	= "\0$VER: playsidfp.library " PROGRAM_VER " "COMPILE_DATE;
+static const char LibName[]	= "playsidfp.library";
 
 static const APTR FuncTable[] =
 {
@@ -44,27 +44,27 @@ static const APTR FuncTable[] =
 	// Start sysv block for user functions.
 
 	(APTR)   FUNCARRAY_32BIT_SYSTEMV,
-	(APTR)   sid_create_taglist,
-	(APTR)   sid_create_tags,
-	(APTR)   sid_free,
-    (APTR)   sid_set_roms,
-	(APTR)   sid_init,
-	(APTR)   sid_play,
-	(APTR)   sid_speed,
-	(APTR)   sid_mute,
-	(APTR)   sid_filter,
-	(APTR)   sid_time,
-	(APTR)   sid_tune_info,
-	(APTR)   sid_current_subtune,
-	(APTR)   sid_subtunes,
-	(APTR)   sid_subtune_set,
-	(APTR)   sid_tune_md5,
+	(APTR)   playsidcpp_create_taglist,
+	(APTR)   playsidcpp_create_tags,
+	(APTR)   playsidcpp_free,
+    (APTR)   playsidcpp_set_roms,
+	(APTR)   playsidcpp_init,
+	(APTR)   playsidcpp_play,
+	(APTR)   playsidcpp_speed,
+	(APTR)   playsidcpp_mute,
+	(APTR)   playsidcpp_filter,
+	(APTR)   playsidcpp_time,
+	(APTR)   playsidcpp_tune_info,
+	(APTR)   playsidcpp_current_subtune,
+	(APTR)   playsidcpp_subtunes,
+	(APTR)   playsidcpp_subtune_set,
+	(APTR)   playsidcpp_tune_md5,
 	(APTR)   -1,
 
 	(APTR)   FUNCARRAY_END
 };
 
-static const struct LibSidplayFpInitData InitData	=
+static const struct LibPlaysidFpInitData InitData	=
 {
 	0xa0,8,  NT_LIBRARY,0,
 	0xa0,9,  0xfb,0,					/* 0xfb -> priority -5 */
@@ -78,7 +78,7 @@ static const struct LibSidplayFpInitData InitData	=
 
 static const ULONG InitTable[] =
 {
-	sizeof(struct LibSidplayFpLibrary),
+	sizeof(struct LibPlaysidFpLibrary),
 	(ULONG)	FuncTable,
 	(ULONG)	&InitData,
 	(ULONG)	LIB_Init
@@ -157,10 +157,10 @@ static ULONG LIB_Reserved(void)
 	LIB_Init
 **********************************************************************/
 
-static struct Library *LIB_Init(struct LibSidplayFpLibrary *LibBase, BPTR SegList, struct ExecBase *LibSidplayFpSysBase)
+static struct Library *LIB_Init(struct LibPlaysidFpLibrary *LibBase, BPTR SegList, struct ExecBase *LibPlaysidFpSysBase)
 {
 	LibBase->SegList	= SegList;
-	SysBase				= LibSidplayFpSysBase;
+	SysBase				= LibPlaysidFpSysBase;
 	return &LibBase->Library;
 }
 
@@ -168,7 +168,7 @@ static struct Library *LIB_Init(struct LibSidplayFpLibrary *LibBase, BPTR SegLis
 	RemoveLibrary
 **********************************************************************/
 
-static VOID RemoveLibrary(struct LibSidplayFpLibrary *LibBase)
+static VOID RemoveLibrary(struct LibPlaysidFpLibrary *LibBase)
 {
 	Remove(&LibBase->Library.lib_Node);
 	FreeMem((APTR)((ULONG)(LibBase) - (ULONG)(LibBase->Library.lib_NegSize)), LibBase->Library.lib_NegSize + LibBase->Library.lib_PosSize);
@@ -180,7 +180,7 @@ static VOID RemoveLibrary(struct LibSidplayFpLibrary *LibBase)
 
 static BPTR LIB_Expunge(void)
 {
-	struct LibSidplayFpLibrary *LibBase = (struct LibSidplayFpLibrary *)REG_A6;
+	struct LibPlaysidFpLibrary *LibBase = (struct LibPlaysidFpLibrary *)REG_A6;
 
 	Forbid();
 	if (LibBase->Library.lib_OpenCnt == 0)
@@ -203,7 +203,7 @@ static BPTR LIB_Expunge(void)
 
 static BPTR LIB_Close(void)
 {
-	struct LibSidplayFpLibrary *LibBase = (struct LibSidplayFpLibrary *)REG_A6;
+	struct LibPlaysidFpLibrary *LibBase = (struct LibPlaysidFpLibrary *)REG_A6;
 	BPTR	SegList	= 0;
 
 	Forbid();
@@ -227,7 +227,7 @@ static BPTR LIB_Close(void)
 
 static struct Library *LIB_Open(void)
 {
-	struct LibSidplayFpLibrary *LibBase = (struct LibSidplayFpLibrary *)REG_A6;
+	struct LibPlaysidFpLibrary *LibBase = (struct LibPlaysidFpLibrary *)REG_A6;
 
 	Forbid();
 	LibBase->Library.lib_Flags &= ~LIBF_DELEXP;

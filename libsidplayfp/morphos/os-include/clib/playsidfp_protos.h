@@ -1,5 +1,5 @@
-#ifndef SIDPLAYFP_PROTOS_H
-#define SIDPLAYFP_PROTOS_H
+#ifndef PLAYSIDFP_PROTOS_H
+#define PLAYSIDFP_PROTOS_H
 
 #ifndef EXEC_TYPES_H
 # include <exec/types.h>
@@ -9,141 +9,141 @@
 #endif
 
 /* defines for tags */
-#define SF_EMULATION_RESIDFP 0
-#define SF_EMULATION_RESID 1
-#define SF_SID_MODEL_MOS6581 0
-#define SF_SID_MODEL_MOS8580 1
-#define SF_MACHINE_TYPE_PAL 0
-#define SF_MACHINE_TYPE_NTSC 1
-#define SF_MACHINE_TYPE_PAL_M 2
-#define SF_MACHINE_TYPE_OLD_NTSC 3
-#define SF_MACHINE_TYPE_DREAN 4
-#define SF_CIA_MODEL_MOS6526 0
-#define SF_CIA_MODEL_MOS8521 1
-#define SF_SAMPLING_METHOD_INTERPOLATE 0
-#define SF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
-#define SF_PLAYBACK_MONO 0
-#define SF_PLAYBACK_STEREO 1
+#define PF_EMULATION_RESIDFP 0
+#define PF_EMULATION_RESID 1
+#define PF_SID_MODEL_MOS6581 0
+#define PF_SID_MODEL_MOS8580 1
+#define PF_MACHINE_TYPE_PAL 0
+#define PF_MACHINE_TYPE_NTSC 1
+#define PF_MACHINE_TYPE_PAL_M 2
+#define PF_MACHINE_TYPE_OLD_NTSC 3
+#define PF_MACHINE_TYPE_DREAN 4
+#define PF_CIA_MODEL_MOS6526 0
+#define PF_CIA_MODEL_MOS8521 1
+#define PF_SAMPLING_METHOD_INTERPOLATE 0
+#define PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
+#define PF_PLAYBACK_MONO 0
+#define PF_PLAYBACK_STEREO 1
 
-/* SidplayFpInfo defines */
-#define SFI_CLOCK_UNKNOWN 0
-#define SFI_CLOCK_PAL 1
-#define SFI_CLOCK_NTSC 2
-#define SFI_CLOCK_ANY 3
-#define SFI_SID_MODE_UNKNOWN 0
-#define SFI_SID_MODEL_MOS6581 1
-#define SFI_SID_MODEL_MOS8580 2
-#define SFI_SID_MODEL_ANY 3
-#define SFI_COMPATIBILITY_C64 0
-#define SFI_COMPATIBILITY_PSID 1
-#define SFI_COMPATIBILITY_R64 2
-#define SFI_COMPATIBILITY_BASIC 3
+/* PlaysidFpInfo defines */
+#define PFI_CLOCK_UNKNOWN 0
+#define PFI_CLOCK_PAL 1
+#define PFI_CLOCK_NTSC 2
+#define PFI_CLOCK_ANY 3
+#define PFI_SID_MODE_UNKNOWN 0
+#define PFI_SID_MODEL_MOS6581 1
+#define PFI_SID_MODEL_MOS8580 2
+#define PFI_SID_MODEL_ANY 3
+#define PFI_COMPATIBILITY_C64 0
+#define PFI_COMPATIBILITY_PSID 1
+#define PFI_COMPATIBILITY_R64 2
+#define PFI_COMPATIBILITY_BASIC 3
 
 /** Tags
  *
- * See also: SF_XXX defines.
+ * See also: PF_XXX defines.
  *
  * If tag is not given or its value is invalid default is used.
  *
- * SFA_Emulation
+ * PFA_Emulation
  *
  *   Type of emulation. Possible options are RESID or RESIDFP
- *   Default: SF_EMULATION_RESIDFP
+ *   Default: PF_EMULATION_RESIDFP
  *
- * SFA_SidModel
+ * PFA_SidModel
  *
  *   Type of SID model. Possible options MOS8580 or MOS6581
- *   Default: SF_SID_MODEL_MOS6581
+ *   Default: PF_SID_MODEL_MOS6581
  *
- * SFA_SidModelForce
+ * PFA_SidModelForce
  *
  *   Forces the SID model and does not let player choose. Boolean value.
  *   Default: FALSE
  *
- * SFA_MachineType
+ * PFA_MachineType
  *
  *   Machine type. Possible options PAL, NTSC, PAL_M, OLD_NTSC and DREAN.
- *   Default: SF_MACHINE_TYPE_PAL
+ *   Default: PF_MACHINE_TYPE_PAL
  *
- * SFA_MachineTypeForce
+ * PFA_MachineTypeForce
  *
  *   Forces the machine type and does not let player choose. Boolean value.
  *   Default: FALSE
  *
- * SFA_CiaModel
+ * PFA_CiaModel
  *
  *   CIA model. Possible options MOS6526 and MOS8521.
- *   Default SF_CIA_MODEL_MOS6526
+ *   Default PF_CIA_MODEL_MOS6526
  *
- * SFA_SamplingMethod
+ * PFA_SamplingMethod
  *
  *   Sampling method. INTERPOLATE and RESAMPLE_INTERPOLATE
- *   Default: SF_SAMPLING_METHOD_INTERPOLATE
+ *   Default: PF_SAMPLING_METHOD_INTERPOLATE
  *
- * SFA_Filter
+ * PFA_Filter
  *
  *   Use filter. Boolean value.
  *   Default value: FALSE
  *
- * SFA_Digiboost
+ * PFA_Digiboost
  *
  *   Use SID digiboost. For MOS8580 only, Boolean value.
  *   Defalt: FALSE
  *
- * SFA_Playback
+ * PFA_Playback
  *
  *   Playback mode. MONO or STEREO
- *   Default: SF_PLAYPACK_MONO
+ *   Default: PF_PLAYPACK_MONO
  *
- * SFA_ResidBias
+ * PFA_ResidBias
  *
  *   Bias of the RESID. Floating point value.
  *   Default: 0.5
  *
- * SFA_ResidFpFilterCurve6581
+ * PFA_ResidFpFilterCurve6581
  *
  *   RESIDFPs MOS6581 filtere curve. Floating point value.
  *   Default: 0.5
  *
- * SFA_ResidFpFilterCurve8580
+ * PFA_ResidFpFilterCurve8580
  *
  *   RESIDFPs MOS8580 filtere curve. Floating point value.
  *   Default: 0.5
  *
- * SFA_AudioFrequency
+ * PFA_AudioFrequency
  *
  *   Frequency of the playback. Some reasonable unssigned intereg value.
  *   Default: 44100
  */
-#define SFA_DUMMY                  (TAG_USER + 0x4000)
-#define SFA_Emulation              (SFA_DUMMY + 1)
-#define SFA_SidModel               (SFA_DUMMY + 2)
-#define SFA_SidModelForce          (SFA_DUMMY + 3)
-#define SFA_MachineType            (SFA_DUMMY + 4)
-#define SFA_MachineTypeForce       (SFA_DUMMY + 5)
-#define SFA_CiaModel               (SFA_DUMMY + 6)
-#define SFA_SamplingMethod         (SFA_DUMMY + 7)
-#define SFA_Filter                 (SFA_DUMMY + 8)
-#define SFA_Digiboost              (SFA_DUMMY + 9)
-#define SFA_Playback               (SFA_DUMMY + 10)
-#define SFA_ResidBias              (SFA_DUMMY + 11)
-#define SFA_ResidFpFilterCurve6581 (SFA_DUMMY + 12)
-#define SFA_ResidFpFilterCurve8580 (SFA_DUMMY + 13)
-#define SFA_AudioFrequency         (SFA_DUMMY + 14)
+#define PFA_DUMMY                  (TAG_USER + 0x4000)
+#define PFA_Emulation              (PFA_DUMMY + 1)
+#define PFA_SidModel               (PFA_DUMMY + 2)
+#define PFA_SidModelForce          (PFA_DUMMY + 3)
+#define PFA_MachineType            (PFA_DUMMY + 4)
+#define PFA_MachineTypeForce       (PFA_DUMMY + 5)
+#define PFA_CiaModel               (PFA_DUMMY + 6)
+#define PFA_SamplingMethod         (PFA_DUMMY + 7)
+#define PFA_Filter                 (PFA_DUMMY + 8)
+#define PFA_Digiboost              (PFA_DUMMY + 9)
+#define PFA_Playback               (PFA_DUMMY + 10)
+#define PFA_ResidBias              (PFA_DUMMY + 11)
+#define PFA_ResidFpFilterCurve6581 (PFA_DUMMY + 12)
+#define PFA_ResidFpFilterCurve8580 (PFA_DUMMY + 13)
+#define PFA_AudioFrequency         (PFA_DUMMY + 14)
 
 /* Errors */
-#define SFE_OK                       (0UL)
-#define SFE_PARAMETERS               (1UL)
-#define SFE_PLAYER_NOT_ALLOCATED     (2UL)
-#define SFE_PLAYER_NOT_INITIALIZED   (3UL)
-#define SFE_PLAYER_TUNE_INFO         (4UL)
-#define SFE_PLAYER_TUNE_LOAD         (5UL)
-#define SFE_PLAYER_SUBTUNE           (6UL)
-#define SFE_PLAYER_CONFIG            (7UL)
-#define SFE_PLAYER_EMULATION_RESID   (8UL)
-#define SFE_PLAYER_EMULATION_RESIDFP (9UL)
+#define PFE_OK                       (0UL)
+#define PFE_PARAMETERS               (1UL)
+#define PFE_PLAYER_NOT_ALLOCATED     (2UL)
+#define PFE_PLAYER_NOT_INITIALIZED   (3UL)
+#define PFE_PLAYER_TUNE_INFO         (4UL)
+#define PFE_PLAYER_TUNE_LOAD         (5UL)
+#define PFE_PLAYER_SUBTUNE           (6UL)
+#define PFE_PLAYER_CONFIG            (7UL)
+#define PFE_PLAYER_EMULATION_RESID   (8UL)
+#define PFE_PLAYER_EMULATION_RESIDFP (9UL)
 
-struct SidplayFpInfo
+struct PlaysidFpInfo
 {
     STRPTR Title;
     STRPTR Author;
@@ -154,7 +154,7 @@ struct SidplayFpInfo
     BYTE Compability;
 };
 
-struct SidplayFp
+struct PlaysidFp
 {
     BOOL Initialized;            /** Is player in initialised state */
     ULONG Error;                 /** Error information from library */
@@ -167,21 +167,21 @@ struct SidplayFp
  *
  * Items - Tag item list.
  *
- * returns: struct SidplayFp allocated by library. Use SidplayFpFree() to free it
+ * returns: struct PlaysidFp allocated by library. Use PlaysidFpFree() to free it
  */
-struct SidplayFp *SidplayFpCreateA( struct TagItem *Items );
+struct PlaysidFp *PlaysidFpCreateA( struct TagItem *Items );
 
 /**
- * Wrapper for SidplayFpCreateA()
+ * Wrapper for PlaysidFpCreateA()
  */
-struct SidplayFp *SidplayFpCreate( Tag, ... );
+struct PlaysidFp *PlaysidFpCreate( Tag, ... );
 
 /**
  * Free player
  *
- * Player - allocated SidplayFp struct
+ * Player - allocated PlaysidFp struct
  */
-void SidplayFpFree( struct SidplayFp *Player );
+void PlaysidFpFree( struct PlaysidFp *Player );
 
 /**
  * Sets rom files to player. Optional function. Required only for basic based
@@ -195,19 +195,19 @@ void SidplayFpFree( struct SidplayFp *Player );
  *
  * returns: TRUE if success
  */
-BOOL SidplayFpSetRoms( struct SidplayFp *Player, CONST UBYTE *Kernal, CONST UBYTE *Basic, CONST UBYTE *Chargen);
+BOOL PlaysidFpSetRoms( struct PlaysidFp *Player, CONST UBYTE *Kernal, CONST UBYTE *Basic, CONST UBYTE *Chargen);
 
 /**
  * Initializes player with given SID-data. It is safe to free SidData after
  * call.
  *
- * Player - allocated SidplayFp struct
+ * Player - allocated PlaysidFp struct
  * SidData - whole SID-file in memory.
  * SidSize - size of the SidData
  *
  * returns: TRUE if success
  */
-BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSize );
+BOOL PlaysidFpInit( struct PlaysidFp *Player, CONST UBYTE *SidData, ULONG SidSize );
 
 /**
  * Get current song information. Result is valid after init. When changing
@@ -215,9 +215,9 @@ BOOL SidplayFpInit( struct SidplayFp *Player, CONST UBYTE *SidData, ULONG SidSiz
  *
  * Player
  *
- * returns: const pointer to struct SidplayFpInfo. Do not change or free it.
+ * returns: const pointer to struct PlaysidFpInfo. Do not change or free it.
  */
-CONST struct SidplayFpInfo *SidplayFpInfo( struct SidplayFp *Player );
+CONST struct PlaysidFpInfo *PlaysidFpInfo( struct PlaysidFp *Player );
 
 /**
  * Get current subtune
@@ -226,40 +226,40 @@ CONST struct SidplayFpInfo *SidplayFpInfo( struct SidplayFp *Player );
  *
  * returns: zero if fails
  */
-UWORD SidplayFpCurrentSubtune( struct SidplayFp *Player );
+UWORD PlaysidFpCurrentSubtune( struct PlaysidFp *Player );
 
 /**
  * Number of the subtunes in song
  *
- * Player - allocated SidplayFp struct
+ * Player - allocated PlaysidFp struct
  *
  * returns: zero if fails
  */
-UWORD SidplayFpSubtunes( struct SidplayFp *Player );
+UWORD PlaysidFpSubtunes( struct PlaysidFp *Player );
 
 /**
  * Set SID subtune. Subtune numbering starts from 1. 0 is special case and sets
  * default tune or tune number 1 depends of SID-file type.
  *
- * Player - allocated SidplayFp struct
+ * Player - allocated PlaysidFp struct
  * Subtune - SIDs subtune
  *
  * returns: TRUE if success
  */
-BOOL SidplayFpSetSubtune( struct SidplayFp *Player, UWORD Subtune );
+BOOL PlaysidFpSetSubtune( struct PlaysidFp *Player, UWORD Subtune );
 
 /**
  * Fill sample buffer with signed 16bit audio samples. Library tries fill as
  * many samples as SampleCount tells.
  *
- * Player - allocated SidplayFp struct
+ * Player - allocated PlaysidFp struct
  * SampleBuffer - Preallocated buffer of samples to fill
  * SampleCount - SampleBuffer size in samples
  *
  * returns: Number of samples really put to SampleBuffer. In case of error
  *  negative value.
  */
-LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCount );
+LONG PlaysidFpPlay( struct PlaysidFp *Player, SHORT *SampleBuffer, LONG SampleCount );
 
 /**
  * Kind of fast forward. Sets play speed as percentage. For example with
@@ -270,7 +270,7 @@ LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCo
  *
  * returns: FALSE if fails.
  */
-BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent );
+BOOL PlaysidFpSpeed( struct PlaysidFp *Player, USHORT Percent );
 
 /**
  * Mute or un mute voice channel of chosen SID. Three SIDs and voice channels
@@ -283,7 +283,7 @@ BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent );
  *
  * returns: FALSE if fails.
  */
-BOOL SidplayFpMute( struct SidplayFp *Player, UBYTE SidNumber, UBYTE VoiceChannel, BOOL Mute );
+BOOL PlaysidFpMute( struct PlaysidFp *Player, UBYTE SidNumber, UBYTE VoiceChannel, BOOL Mute );
 
 /**
  * Set filter on or off.
@@ -293,7 +293,7 @@ BOOL SidplayFpMute( struct SidplayFp *Player, UBYTE SidNumber, UBYTE VoiceChanne
  *
  * returns: FALSE if fails.
  */
-BOOL SidplayFpFilter( struct SidplayFp *Player, BOOL Filter );
+BOOL PlaysidFpFilter( struct PlaysidFp *Player, BOOL Filter );
 
 /**
  * Get current playing time.
@@ -302,7 +302,7 @@ BOOL SidplayFpFilter( struct SidplayFp *Player, BOOL Filter );
  *
  * return: current playing time in ms. Negative if fails.
  */
-LONG SidplayFpTime( struct SidplayFp *Player );
+LONG PlaysidFpTime( struct PlaysidFp *Player );
 
 /**
  * Get tunes MD5 sum. MD5 sum can be used for example to get song length from
@@ -312,7 +312,7 @@ LONG SidplayFpTime( struct SidplayFp *Player );
  *
  * returns: MD5 sum of tune. NULL if fails.
  */
-CONST_STRPTR SidplayFpTuneMD5( struct SidplayFp *Player );
+CONST_STRPTR PlaysidFpTuneMD5( struct PlaysidFp *Player );
 
 
-#endif /* SIDPLAYFP_PROTOS_H */
+#endif /* PLAYSIDFP_PROTOS_H */

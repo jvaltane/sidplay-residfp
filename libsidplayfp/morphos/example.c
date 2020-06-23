@@ -2,7 +2,7 @@
 
 #include <proto/exec.h>
 #include <proto/dos.h>
-#include <proto/sidplayfp.h>
+#include <proto/playsidfp.h>
 
 struct DosLibrary *DOSBase;
 
@@ -16,7 +16,7 @@ int main (int argc, char **argv)
     LONG sampleCount = 4096;
     LONG got = 0;
     BOOL tst = FALSE;
-	struct SidplayFp *sf = NULL;
+	struct PlaysidFp *player = NULL;
     BPTR fh = 0;
     LONG sidSize = 0;
     LONG actualSize = 0;
@@ -65,16 +65,16 @@ int main (int argc, char **argv)
     fh = 0;
 
     printf("Create player\n");
-    sf = SidplayFpCreate(SFA_Emulation, SF_EMULATION_RESID, TAG_END);
-	if (sf == NULL) {
+    player = PlaysidFpCreate(PFA_Emulation, PF_EMULATION_RESID, TAG_END);
+	if (player == NULL) {
 		fprintf(stderr, "Error: Could not create player\n");
 		retval = 1;
         goto error;
 	}
 	printf("Init SID...\n");
-    tst = SidplayFpInit(sf, sid, sidSize);
+    tst = PlaysidFpInit(player, sid, sidSize);
     if (tst == FALSE) {
-		fprintf(stderr, "Error: Could not Load SID to SidplayFP\n");
+		fprintf(stderr, "Error: Could not Load SID to PlaysidFP\n");
 		retval = 1;
         goto error;
     }
@@ -82,41 +82,41 @@ int main (int argc, char **argv)
     sid = NULL;
 
     {
-        CONST_STRPTR md5 = SidplayFpTuneMD5(sf);
-        CONST struct SidplayFpInfo *info = SidplayFpInfo(sf);
+        CONST_STRPTR md5 = PlaysidFpTuneMD5(player);
+        CONST struct PlaysidFpInfo *info = PlaysidFpInfo(player);
         if (info != NULL) {
             printf("Author: %s, Title: %s\n", info->Author?info->Author:"NULL", info->Title?info->Title:"NULL");
         }
         printf("MD5: %s\n", md5?md5:"NULL");
     }
-    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    printf("Subtune (%d/%d)\n", PlaysidFpCurrentSubtune(player), PlaysidFpSubtunes(player));
     printf("Set invalid subtune: 255\n");
-    tst = SidplayFpSetSubtune(sf, 255);
+    tst = PlaysidFpSetSubtune(player, 255);
     if (tst == FALSE) {
-        if (sf != NULL) {
-            printf("SF error: %ld\n", sf->Error);
+        if (player != NULL) {
+            printf("SF error: %ld\n", player->Error);
         }
     }
-    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    printf("Subtune (%d/%d)\n", PlaysidFpCurrentSubtune(player), PlaysidFpSubtunes(player));
     printf("Set subtune: 2\n");
-    tst = SidplayFpSetSubtune(sf, 2);
+    tst = PlaysidFpSetSubtune(player, 2);
     if (tst == FALSE) {
-        if (sf != NULL) {
-            printf("SF error: %ld\n", sf->Error);
+        if (player != NULL) {
+            printf("SF error: %ld\n", player->Error);
         }
     }
-    printf("Subtune (%d/%d)\n", SidplayFpCurrentSubtune(sf), SidplayFpSubtunes(sf));
+    printf("Subtune (%d/%d)\n", PlaysidFpCurrentSubtune(player), PlaysidFpSubtunes(player));
 
     i = 0;
     do {
-        got = SidplayFpPlay(sf, sampleBuf, sampleCount);
+        got = PlaysidFpPlay(player, sampleBuf, sampleCount);
         printf("Got samples: %d (bytes: %d)\n", got, got*sizeof(SHORT));
     } while (got > 0 && i++ < 10);
 
 error:
     printf("Releasing...\n");
     if (fh != 0) Close(fh);
-	if (sf != NULL) SidplayFpFree(sf);
+	if (player != NULL) PlaysidFpFree(player);
     if (sid != NULL) FreeVec(sid);
     CloseLibrary((struct Library *)DOSBase);
 
