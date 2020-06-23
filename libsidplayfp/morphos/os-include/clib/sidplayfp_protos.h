@@ -270,7 +270,7 @@ LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCo
  *
  * returns: FALSE if fails.
  */
-BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent);
+BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent );
 
 /**
  * Mute or un mute voice channel of chosen SID. Three SIDs and voice channels
@@ -283,7 +283,17 @@ BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent);
  *
  * returns: FALSE if fails.
  */
-BOOL SidplayFpMute( struct SidplayFp *Player, UBYTE SidNumber, UBYTE VoiceChannel, BOOL Mute);
+BOOL SidplayFpMute( struct SidplayFp *Player, UBYTE SidNumber, UBYTE VoiceChannel, BOOL Mute );
+
+/**
+ * Set filter on or off.
+ *
+ * Player
+ * Filter - TRUE sets filter on.
+ *
+ * returns: FALSE if fails.
+ */
+BOOL SidplayFpFilter( struct SidplayFp *Player, BOOL Filter );
 
 /**
  * Get current playing time.

@@ -377,6 +377,30 @@ BOOL sid_mute (struct SidplayFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL 
   return TRUE;
 }
 
+BOOL sid_filter (struct SidplayFp *s, BOOL filter)
+{
+  if (s == NULL) {
+    return FALSE;
+  }
+  if (s->Initialized != TRUE) {
+    s->Error = SFE_PLAYER_NOT_INITIALIZED;
+    return FALSE;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return FALSE;
+  }
+  if (priv->config.sidEmulation == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return FALSE;
+  }
+
+  priv->config.sidEmulation->filter((filter==TRUE)?true:false);
+
+  return TRUE;
+}
+
 LONG sid_time (struct SidplayFp *s)
 {
   if (s == NULL) {

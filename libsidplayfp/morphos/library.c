@@ -52,6 +52,7 @@ static const APTR FuncTable[] =
 	(APTR)   sid_play,
 	(APTR)   sid_speed,
 	(APTR)   sid_mute,
+	(APTR)   sid_filter,
 	(APTR)   sid_time,
 	(APTR)   sid_tune_info,
 	(APTR)   sid_current_subtune,

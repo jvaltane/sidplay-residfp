@@ -16,6 +16,7 @@ BOOL sid_init (struct SidplayFp *s, CONST UBYTE *data, ULONG data_len);
 LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len);
 BOOL sid_speed (struct SidplayFp *s, USHORT percent);
 BOOL sid_mute (struct SidplayFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL mute);
+BOOL sid_filter (struct SidplayFp *s, BOOL filter);
 LONG sid_time (struct SidplayFp *s);
 
 CONST struct SidplayFpInfo *sid_tune_info (struct SidplayFp *s);
