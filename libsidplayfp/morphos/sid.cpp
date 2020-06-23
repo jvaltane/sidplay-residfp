@@ -331,6 +331,28 @@ LONG sid_play (struct SidplayFp *s, SHORT *buffer, LONG buffer_len)
   return static_cast<LONG>(priv->sp->play (buffer, buffer_len));
 }
 
+BOOL sid_speed (struct SidplayFp *s, USHORT percent)
+{
+  if (s == NULL) {
+    return -1;
+  }
+  if (s->Initialized != TRUE) {
+    s->Error = SFE_PLAYER_NOT_INITIALIZED;
+    return -1;
+  }
+  sid_priv_t *priv = static_cast<sid_priv_t *> (s->PrivateData);
+  if (priv == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return -1;
+  }
+  if (priv->sp == NULL) {
+    s->Error = SFE_PLAYER_NOT_ALLOCATED;
+    return -1;
+  }
+  bool retval = priv->sp->fastForward (static_cast<unsigned int>(percent));
+  return retval?TRUE:FALSE;
+}
+
 BOOL sid_mute (struct SidplayFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL mute)
 {
   if (s == NULL) {

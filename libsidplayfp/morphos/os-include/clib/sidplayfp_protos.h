@@ -172,7 +172,7 @@ struct SidplayFp
 struct SidplayFp *SidplayFpCreateA( struct TagItem *Items );
 
 /**
- * Wrapper for SidplayFpCreateTagList()
+ * Wrapper for SidplayFpCreateA()
  */
 struct SidplayFp *SidplayFpCreate( Tag, ... );
 
@@ -260,6 +260,17 @@ BOOL SidplayFpSetSubtune( struct SidplayFp *Player, UWORD Subtune );
  *  negative value.
  */
 LONG SidplayFpPlay( struct SidplayFp *Player, SHORT *SampleBuffer, LONG SampleCount );
+
+/**
+ * Kind of fast forward. Sets play speed as percentage. For example with
+ * Percent value of 200 engine just skips every second sample while playing.
+ *
+ * Player
+ * Percent - How fast to play tune. Valid values are between 100 and 3200.
+ *
+ * returns: FALSE if fails.
+ */
+BOOL SidplayFpSpeed( struct SidplayFp *Player, USHORT Percent);
 
 /**
  * Mute or un mute voice channel of chosen SID. Three SIDs and voice channels
