@@ -1,3 +1,11 @@
+/**
+ * PlaysidFp Copyright 2017 Joni Valtanen
+ *
+ * PlaysidFp is C implementation of SidplayFp.
+ *
+ * License: LGPL2
+ */
+
 #ifndef PLAYSIDFP_PROTOS_H
 #define PLAYSIDFP_PROTOS_H
 
@@ -8,40 +16,109 @@
 # include <utility/tagitem.h>
 #endif
 
-/* defines for tags */
-#define PF_EMULATION_RESIDFP 0
-#define PF_EMULATION_RESID 1
-#define PF_SID_MODEL_MOS6581 0
-#define PF_SID_MODEL_MOS8580 1
-#define PF_MACHINE_TYPE_PAL 0
-#define PF_MACHINE_TYPE_NTSC 1
-#define PF_MACHINE_TYPE_PAL_M 2
-#define PF_MACHINE_TYPE_OLD_NTSC 3
-#define PF_MACHINE_TYPE_DREAN 4
-#define PF_CIA_MODEL_MOS6526 0
-#define PF_CIA_MODEL_MOS8521 1
-#define PF_SAMPLING_METHOD_INTERPOLATE 0
+/** Defines for tags
+ *
+ * See also: Tags
+ *
+ * Example:
+ *     PlaysidFp *player = PlaysidFPCreate (
+ *       PFA_Emulation, PF_EMULATION_RESIDFP,
+ *       NULL);
+ *
+ * PF_EMULATION_RESIDFP
+ *
+ *   Use ReSIDfp emulation
+ *
+ * PF_EMULATION_RESID
+ *
+ *   Use ReSID emulation
+ *
+ * PF_SID_MODEL_MOS6581
+ *
+ *   Try to use MOS6581 as SID model with emulation.
+ *
+ * PF_SID_MODEL_MOS8580
+ *
+ *
+ *   Try to use MOS8589 as SID model with emulation.
+ *
+ * PF_MACHINE_TYPE_PAL
+ *
+ *   Try to use PAL machine model with emulation.
+ *
+ * PF_MACHINE_TYPE_NTSC
+ *
+ *   Try to use NTSC machine model with emulation.
+ *
+ * PF_MACHINE_TYPE_PAL_M
+ *
+ *   Try to use PAL_M machine model with emulation.
+ *
+ * PF_MACHINE_TYPE_OLD_NTSC
+ *
+ *   Try to use OLD_NTSC machine model with emulation.
+ *
+ * PF_MACHINE_TYPE_DREAN
+ *
+ *   Try to use DREAN machine model with emulation.
+ *
+ * PF_CIA_MODEL_MOS6526
+ *
+ *   Try to use MOS6526 as CIA model with emulation.
+ *
+ * PF_CIA_MODEL_MOS8521
+ *
+ *   Try to use MOS8521 as CIA model with emulation.
+ *
+ * PF_SAMPLING_METHOD_INTERPOLATE
+ *
+ *   Try to use interpolate as sampling method with emulation.
+ *
+ * PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE
+ *
+ *   Try to use resample nterpolate as sampling method with emulation.
+ *
+ * PF_PLAYBACK_MONO
+ *
+ *   Use mono playback.
+ *
+ * PF_PLAYBACK_STEREO
+ *
+ *   Use stereo playback.
+ */
+#define PF_EMULATION_RESIDFP                    0
+#define PF_EMULATION_RESID                      1
+#define PF_SID_MODEL_MOS6581                    0
+#define PF_SID_MODEL_MOS8580                    1
+#define PF_MACHINE_TYPE_PAL                     0
+#define PF_MACHINE_TYPE_NTSC                    1
+#define PF_MACHINE_TYPE_PAL_M                   2
+#define PF_MACHINE_TYPE_OLD_NTSC                3
+#define PF_MACHINE_TYPE_DREAN                   4
+#define PF_CIA_MODEL_MOS6526                    0
+#define PF_CIA_MODEL_MOS8521                    1
+#define PF_SAMPLING_METHOD_INTERPOLATE          0
 #define PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
-#define PF_PLAYBACK_MONO 0
-#define PF_PLAYBACK_STEREO 1
+#define PF_PLAYBACK_MONO                        0
+#define PF_PLAYBACK_STEREO                      1
 
 /* PlaysidFpInfo defines */
-#define PFI_CLOCK_UNKNOWN 0
-#define PFI_CLOCK_PAL 1
-#define PFI_CLOCK_NTSC 2
-#define PFI_CLOCK_ANY 3
-#define PFI_SID_MODE_UNKNOWN 0
-#define PFI_SID_MODEL_MOS6581 1
-#define PFI_SID_MODEL_MOS8580 2
-#define PFI_SID_MODEL_ANY 3
-#define PFI_COMPATIBILITY_C64 0
-#define PFI_COMPATIBILITY_PSID 1
-#define PFI_COMPATIBILITY_R64 2
+#define PFI_CLOCK_UNKNOWN       0
+#define PFI_CLOCK_PAL           1
+#define PFI_CLOCK_NTSC          2
+#define PFI_CLOCK_ANY           3
+#define PFI_SID_MODE_UNKNOWN    0
+#define PFI_SID_MODEL_MOS6581   1
+#define PFI_SID_MODEL_MOS8580   2
+#define PFI_SID_MODEL_ANY       3
+#define PFI_COMPATIBILITY_C64   0
+#define PFI_COMPATIBILITY_PSID  1
+#define PFI_COMPATIBILITY_R64   2
 #define PFI_COMPATIBILITY_BASIC 3
 
 /** Tags
  *
- * See also: PF_XXX defines.
+ * See also: Defines for tags.
  *
  * If tag is not given or its value is invalid default is used.
  *
@@ -131,44 +208,136 @@
 #define PFA_ResidFpFilterCurve8580 (PFA_DUMMY + 13)
 #define PFA_AudioFrequency         (PFA_DUMMY + 14)
 
-/* Errors */
-#define PFE_OK                (0UL)
-#define PFE_PARAMETERS        (1UL)
-#define PFE_NOT_ALLOCATED     (2UL)
-#define PFE_NOT_INITIALIZED   (3UL)
-#define PFE_EMULATION_RESID   (4UL)
-#define PFE_EMULATION_RESIDFP (5UL)
-#define PFE_TUNE_INFO         (6UL)
-#define PFE_TUNE_LOAD         (7UL)
-#define PFE_TUNE_MD5          (8UL)
-#define PFE_SUBTUNE           (9UL)
-#define PFE_SUBTUNE_SET       (10UL)
-#define PFE_SUBTUNES          (11UL)
-#define PFE_CONFIG            (12UL)
-#define PFE_TIME              (13UL)
-#define PFE_SPEED             (14UL)
-#define PFE_PLAY              (15UL)
-#define PFE_SET_ROMS          (16UL)
-#define PFE_MUTE              (17UL)
-#define PFE_FILTER            (18UL)
+/** Errors
+ *
+ *   Functions set PlaysidFP structs Error if those fails. Error tells more
+ *   specific information why function fails.
+ *
+ * PFE_OK
+ *
+ *   Everything is OK.
+ *
+ * PFE_PARAMETERS
+ *
+ *   Parameters for function are invalid. PlaysidFpCreate() is exception it sets
+ *   default values if invalid values are passed.
+ *
+ * PFE_NOT_ALLOCATED
+ *
+ *   PlaysidFpCreate() has failed, not called or some other reason Player is
+ *   not valid.
+ *
+ * PFE_EMULATION_RESID
+ *
+ *   ReSID init in PlaysidFpInit() failed.
+ *
+ * PFE_EMULATION_RESIDFP
+ *
+ *   ReSIDfp init in PlaysidFpInit() failed.
+ *
+ * PFE_NOT_INITIALIZED
+ *
+ *   This is set if function which requires PlaysidInit() is called and init
+ *   has failed or not called at all.
+ *
+ * PFE_TUNE_INFO
+ *
+ *   Could not get tune info. Internal C++ method fails.
+ *
+ * PFE_TUNE_LOAD
+ *
+ *   Could not load tune. Internal C++ method fails.
+ *
+ * PFE_TUNE_MD5
+ *
+ *   Could not get md5 of tune. Internal C++ method fails.
+ *
+ * PFE_SUBTUNE
+ *
+ *   Could not get current subtune. Internal C++ method fails.
+ *
+ * PFE_SUBTUNE_SET
+ *
+ *   Could not set current subtune. Internal C++ method fails.
+ *
+ * PFE_SUBTUNES
+ *
+ *   Could not get number of subtunes. Internal C++ method fails.
+ *
+ * PFE_CONFIG
+ *
+ *   Players config has problem. Internal C++ method fails.
+ *
+ * PFE_TIME
+ *
+ *   Could not get current time. Internal C++ method fails.
+ *
+ * PFE_SPEED
+ *
+ *   Could not set tune speed. Internal C++ method fails.
+ *
+ * PFE_PLAY
+ *
+ *   Could not get buffer from play. Internal C++ method fails.
+ *
+ * PFE_SET_ROMS
+ *
+ *   Could not set roms.
+ *
+ * PFE_MUTE
+ *
+ *   Could not set mute value. Internal C++ method fails.
+ *
+ * PFE_FILTER
+ *
+ *   Could not set filter. Internal C++ method fails.
+ *
+ */
+#define PFE_OK                0
+#define PFE_PARAMETERS        1
+#define PFE_NOT_ALLOCATED     2
+#define PFE_EMULATION_RESID   3
+#define PFE_EMULATION_RESIDFP 4
+#define PFE_NOT_INITIALIZED   5
+#define PFE_TUNE_INFO         6
+#define PFE_TUNE_LOAD         7
+#define PFE_TUNE_MD5          8
+#define PFE_SUBTUNE           9
+#define PFE_SUBTUNE_SET       10
+#define PFE_SUBTUNES          11
+#define PFE_CONFIG            12
+#define PFE_TIME              13
+#define PFE_SPEED             14
+#define PFE_PLAY              15
+#define PFE_SET_ROMS          16
+#define PFE_MUTE              17
+#define PFE_FILTER            18
 
+/** struct PlaysidFpInfo
+ *
+ *  Info about SID-tune. Returned by PlaysidFpTuneInfo().
+ */
 struct PlaysidFpInfo
 {
-    STRPTR Title;
-    STRPTR Author;
-	STRPTR Released;
-	BYTE SidModel;
-    BYTE SidsRequired;
-    BYTE ClockSpeed;
-    BYTE Compability;
+    STRPTR Title;      /** Title of the tune */
+    STRPTR Author;     /** Author of the tune */
+	STRPTR Released;   /** Releeased information of the tune */
+	BYTE SidModel;     /** SID model of the tune */
+    BYTE SidsRequired; /** Number of SIDs required by tune */
+    BYTE ClockSpeed;   /** Clock speed of the SID tune */
+    BYTE Compability;  /** Compability of the tune */
 };
 
+/** struct PlaysidFp
+ *
+ *   Player structure.
+ */
 struct PlaysidFp
 {
-    BOOL Initialized;            /** Is player in initialised state */
-    ULONG Error;                 /** Error information from library */
-    APTR PrivateData;            /** Private C++ stuff is here */
-    ULONG Reserved[5];           /** Some reserved bytes if needed in the future */
+    BOOL Initialized;  /** Is player in initialised state */
+    BYTE Error;        /** Error information from library */
+    APTR PrivateData;  /** Private data */
+    ULONG Reserved[5]; /** Some reserved bytes if needed in the future */
 };
 
 /**
