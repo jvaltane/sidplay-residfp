@@ -61,7 +61,6 @@ extern "C" {
 
 static struct PlaysidFp *create (struct PlaysidFpNew *sfn);
 
-static bool is_sidbuilder_valid(sidbuilder *b);
 static SidConfig::sid_model_t sid_model_to_sidplay_config (BYTE sid_model);
 static SidConfig::c64_model_t c64_model_to_sidplay_config (BYTE c64_model);
 static SidConfig::cia_model_t cia_model_to_sidplay_config (BYTE cia_model);
@@ -94,15 +93,25 @@ struct PlaysidFp *create (struct PlaysidFpNew *sfn)
   }
 
   /* fill private */
-  priv->sp = new sidplayfp ();
-  if (priv->sp == NULL) {
-    playsidcpp_free(s);
-	return NULL;
+  try {
+    priv->sp = new sidplayfp ();
+    if (priv->sp == NULL) {
+      playsidcpp_free(s);
+	  return NULL;
+    }
+  } catch (...) {
+      playsidcpp_free(s);
+	  return NULL;
   }
-  priv->tune = new SidTune (0);
-  if (priv->tune == NULL) {
-    playsidcpp_free(s);
-    return NULL;
+  try {
+    priv->tune = new SidTune (0);
+    if (priv->tune == NULL) {
+      playsidcpp_free(s);
+      return NULL;
+    }
+  } catch (...) {
+      playsidcpp_free(s);
+      return NULL;
   }
 
   priv->emulation = sfn->Emulation;
@@ -122,6 +131,7 @@ struct PlaysidFp *create (struct PlaysidFpNew *sfn)
   priv->current_subtune = 0;
 
   s->PrivateData = (APTR)priv;
+  s->Error = PFE_OK;
 
   return s;
 }
@@ -188,18 +198,23 @@ BOOL playsidcpp_set_roms(struct PlaysidFp *s, CONST UBYTE *kernal, CONST UBYTE *
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   if (priv->sp == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   if (kernal == NULL || basic == NULL) {
     s->Error = PFE_PARAMETERS;
     return FALSE;
   }
-  priv->sp->setRoms(kernal, basic, chargen);
+  try {
+    priv->sp->setRoms(kernal, basic, chargen);
+  } catch(...) {
+    s->Error = PFE_SET_ROMS;
+    return FALSE;
+  }
   return TRUE;
 }
 
@@ -214,11 +229,11 @@ BOOL playsidcpp_init (struct PlaysidFp *s, CONST UBYTE *data, ULONG data_len)
 
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   if (priv->tune == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   priv->tune->read (data, data_len);
@@ -227,62 +242,82 @@ BOOL playsidcpp_init (struct PlaysidFp *s, CONST UBYTE *data, ULONG data_len)
 
   bool rc = priv->sp->load (priv->tune);
   if (!rc) {
-    s->Error = PFE_PLAYER_TUNE_LOAD;
+    s->Error = PFE_TUNE_LOAD;
     return FALSE;
   }
 
   sidbuilder *sb = NULL;
   if (priv->emulation == PF_EMULATION_RESID) {
-    ReSIDBuilder *rsb = new ReSIDBuilder ("ReSID");
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
+    ReSIDBuilder *rsb = NULL;
+    try {
+      ReSIDBuilder *rsb = new ReSIDBuilder ("ReSID");
+      if (rsb == NULL) {
+        s->Error = PFE_EMULATION_RESID;
+        return FALSE;
+      }
+      const SidInfo &info = priv->sp->info();
+      rsb->create (info.maxsids());
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESID;
+        return FALSE;
+      }
+      rsb->filter (priv->filter);
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESID;
+        return FALSE;
+      }
+      rsb->bias (priv->resid_bias);
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESID;
+        return FALSE;
+      }
+      sb = rsb;
+    } catch (...) {
+      delete rsb;
+      s->Error = PFE_EMULATION_RESID;
       return FALSE;
     }
-    const SidInfo &info = priv->sp->info();
-    rsb->create (info.maxsids());
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    rsb->filter (priv->filter);
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    rsb->bias (priv->resid_bias);
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    sb = rsb;
   } else { /* EMULATION_RESIDFP */
-    ReSIDfpBuilder *rsb = new ReSIDfpBuilder ("ReSIDfp");
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESIDFP;
+    ReSIDfpBuilder *rsb = NULL;
+    try {
+      ReSIDfpBuilder *rsb = new ReSIDfpBuilder ("ReSIDfp");
+      if (rsb == NULL) {
+        s->Error = PFE_EMULATION_RESIDFP;
+        return FALSE;
+      }
+      const SidInfo &info = priv->sp->info();
+      rsb->create (info.maxsids());
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESIDFP;
+        return FALSE;
+      }
+      rsb->filter (priv->filter);
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESIDFP;
+        return FALSE;
+      }
+      rsb->filter6581Curve (priv->residfp_filter_curve_6581);
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESIDFP;
+        return FALSE;
+      }
+      rsb->filter8580Curve (priv->residfp_filter_curve_8580);
+      if (!rsb->getStatus()) {
+        delete rsb;
+        s->Error = PFE_EMULATION_RESIDFP;
+        return FALSE;
+      }
+      sb = rsb;
+    } catch (...) {
+      s->Error = PFE_EMULATION_RESIDFP;
       return FALSE;
     }
-    const SidInfo &info = priv->sp->info();
-    rsb->create (info.maxsids());
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    rsb->filter (priv->filter);
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    rsb->filter6581Curve (priv->residfp_filter_curve_6581);
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    rsb->filter8580Curve (priv->residfp_filter_curve_8580);
-    if (is_sidbuilder_valid(rsb) == false) {
-      s->Error = PFE_PLAYER_EMULATION_RESID;
-      return FALSE;
-    }
-    sb = rsb;
   }
 
   SidConfig &conf = priv->config;
@@ -295,13 +330,24 @@ BOOL playsidcpp_init (struct PlaysidFp *s, CONST UBYTE *data, ULONG data_len)
   conf.ciaModel = priv->cia_model;
   conf.samplingMethod = priv->sampling_method;
 
-  sb->filter(priv->filter); // is this really needed
+  try {
+    sb->filter(priv->filter); // is this really needed
+  } catch (...) {
+    delete sb;
+    s->Error = PFE_FILTER;
+  }
   delete conf.sidEmulation;
   conf.sidEmulation = sb;
 
-  rc = priv->sp->config (conf);
-  if (rc == false) {
-    s->Error = PFE_PLAYER_CONFIG;
+  try {
+    rc = priv->sp->config (conf);
+    if (rc == false) {
+      s->Error = PFE_CONFIG;
+      return FALSE;
+    }
+  } catch (...) {
+    delete conf.sidEmulation;
+    s->Error = PFE_CONFIG;
     return FALSE;
   }
 
@@ -316,41 +362,53 @@ LONG playsidcpp_play (struct PlaysidFp *s, SHORT *buffer, LONG buffer_len)
     return -1;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return -1;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return -1;
   }
   if (priv->sp == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return -1;
   }
-  return static_cast<LONG>(priv->sp->play (buffer, buffer_len));
+
+  try {
+    return static_cast<LONG>(priv->sp->play (buffer, buffer_len));
+  } catch (...) {
+    s->Error = PFE_PLAY;
+    return -1;
+  }
 }
 
 BOOL playsidcpp_speed (struct PlaysidFp *s, USHORT percent)
 {
   if (s == NULL) {
-    return -1;
+    return FALSE;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
-    return -1;
+    s->Error = PFE_NOT_INITIALIZED;
+    return FALSE;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
-    return -1;
+    s->Error = PFE_NOT_ALLOCATED;
+    return FALSE;
   }
   if (priv->sp == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
-    return -1;
+    s->Error = PFE_NOT_ALLOCATED;
+    return FALSE;
   }
-  bool retval = priv->sp->fastForward (static_cast<unsigned int>(percent));
-  return retval?TRUE:FALSE;
+
+  try {
+    bool retval = priv->sp->fastForward (static_cast<unsigned int>(percent));
+    return retval?TRUE:FALSE;
+  } catch (...) {
+    s->Error = PFE_SPEED;
+  }
+  return FALSE;
 }
 
 BOOL playsidcpp_mute (struct PlaysidFp *s, UBYTE sid_number, UBYTE voice_channel, BOOL mute)
@@ -359,22 +417,26 @@ BOOL playsidcpp_mute (struct PlaysidFp *s, UBYTE sid_number, UBYTE voice_channel
     return FALSE;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return FALSE;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   if (priv->sp == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
 
-  priv->sp->mute (static_cast<unsigned int>(sid_number), static_cast<unsigned int>(voice_channel), mute?true:false);
-
-  return TRUE;
+  try {
+    priv->sp->mute (static_cast<unsigned int>(sid_number), static_cast<unsigned int>(voice_channel), mute?true:false);
+    return TRUE;
+  } catch (...) {
+    s->Error = PFE_MUTE;
+    return FALSE;
+  }
 }
 
 BOOL playsidcpp_filter (struct PlaysidFp *s, BOOL filter)
@@ -383,22 +445,26 @@ BOOL playsidcpp_filter (struct PlaysidFp *s, BOOL filter)
     return FALSE;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return FALSE;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   if (priv->config.sidEmulation == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
 
-  priv->config.sidEmulation->filter((filter==TRUE)?true:false);
-
-  return TRUE;
+  try {
+    priv->config.sidEmulation->filter((filter==TRUE)?true:false);
+    return TRUE;
+  } catch (...) {
+    s->Error = PFE_FILTER;
+    return FALSE;
+  }
 }
 
 LONG playsidcpp_time (struct PlaysidFp *s)
@@ -407,19 +473,24 @@ LONG playsidcpp_time (struct PlaysidFp *s)
     return -1;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return -1;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return -1;
   }
   if (priv->sp == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return -1;
   }
-  return static_cast<ULONG>(priv->sp->timeMs());
+  try {
+    return static_cast<ULONG>(priv->sp->timeMs());
+  } catch (...) {
+    s->Error = PFE_TIME;
+    return FALSE;
+  }
 }
 
 CONST struct PlaysidFpInfo *playsidcpp_tune_info (struct PlaysidFp *s)
@@ -428,39 +499,46 @@ CONST struct PlaysidFpInfo *playsidcpp_tune_info (struct PlaysidFp *s)
     return NULL;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return NULL;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return NULL;
   }
   if (priv->info == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return NULL;
   }
   if (priv->tune == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return NULL;
   }
-  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
-  if (tuneInfo == NULL) {
-    s->Error = PFE_PLAYER_TUNE_INFO;
+
+  try {
+    const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+    if (tuneInfo == NULL) {
+      s->Error = PFE_TUNE_INFO;
+      return NULL;
+    }
+
+    struct PlaysidFpInfo *i = priv->info;
+    unsigned int current = tuneInfo->currentSong();
+    i->Title = (STRPTR)tuneInfo->infoString(0);
+    i->Author = (STRPTR)tuneInfo->infoString(1);
+    i->Released = (STRPTR)tuneInfo->infoString(2);
+
+    i->SidsRequired = tuneInfo->sidChips();
+    i->SidModel = tune_info_sid_model_convert(tuneInfo->sidModel(current));
+    i->ClockSpeed = tune_info_clock_speed_convert(tuneInfo->clockSpeed());
+    i->Compability = tune_info_compability_convert(tuneInfo->compatibility());
+
+    return static_cast<CONST struct PlaysidFpInfo *>(i);
+  } catch (...) {
+    s->Error = PFE_TUNE_INFO;
     return NULL;
   }
-  struct PlaysidFpInfo *i = priv->info;
-  unsigned int current = tuneInfo->currentSong();
-  i->Title = (STRPTR)tuneInfo->infoString(0);
-  i->Author = (STRPTR)tuneInfo->infoString(1);
-  i->Released = (STRPTR)tuneInfo->infoString(2);
-
-  i->SidsRequired = tuneInfo->sidChips();
-  i->SidModel = tune_info_sid_model_convert(tuneInfo->sidModel(current));
-  i->ClockSpeed = tune_info_clock_speed_convert(tuneInfo->clockSpeed());
-  i->Compability = tune_info_compability_convert(tuneInfo->compatibility());
-
-  return static_cast<CONST struct PlaysidFpInfo *>(i);
 }
 
 UWORD playsidcpp_current_subtune (struct PlaysidFp *s)
@@ -469,23 +547,26 @@ UWORD playsidcpp_current_subtune (struct PlaysidFp *s)
     return 0;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return 0;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return 0;
   }
   if (priv->info == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return 0;
   }
 
-  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
-  if (tuneInfo) return static_cast<UWORD>(tuneInfo->currentSong());
-  s->Error = PFE_PLAYER_TUNE_INFO;
-
+  try {
+    const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+    if (tuneInfo) return static_cast<UWORD>(tuneInfo->currentSong());
+    s->Error = PFE_SUBTUNE;
+  } catch (...) {
+    s->Error = PFE_SUBTUNE;
+  }
   return 0;
 }
 
@@ -495,22 +576,26 @@ UWORD playsidcpp_subtunes (struct PlaysidFp *s)
     return 0;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return 0;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return 0;
   }
   if (priv->info == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return 0;
   }
-  const SidTuneInfo *tuneInfo = priv->tune->getInfo();
-  if (tuneInfo) return static_cast<UWORD>(tuneInfo->songs());
 
-  s->Error = PFE_PLAYER_TUNE_INFO;
+  try {
+    const SidTuneInfo *tuneInfo = priv->tune->getInfo();
+    if (tuneInfo) return static_cast<UWORD>(tuneInfo->songs());
+    s->Error = PFE_SUBTUNES;
+  } catch (...) {
+    s->Error = PFE_SUBTUNES;
+  }
   return 0;
 }
 
@@ -526,7 +611,7 @@ BOOL playsidcpp_subtune_set (struct PlaysidFp *s, UWORD subtune)
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return FALSE;
   }
   subtunes = playsidcpp_subtunes (s);
@@ -534,14 +619,19 @@ BOOL playsidcpp_subtune_set (struct PlaysidFp *s, UWORD subtune)
     s->Error = PFE_PARAMETERS;
     return FALSE;
   }
-  csubtune = priv->tune->selectSong (subtune);
-  if (0 == csubtune) {
-    s->Error = PFE_PLAYER_SUBTUNE;
-    return FALSE;
-  }
-  priv->current_subtune = csubtune;
 
-  return TRUE;
+  try {
+    csubtune = priv->tune->selectSong (subtune);
+    if (0 == csubtune) {
+      s->Error = PFE_SUBTUNE_SET;
+      return FALSE;
+    }
+    priv->current_subtune = csubtune;
+    return TRUE;
+  } catch (...) {
+    s->Error = PFE_SUBTUNE_SET;
+  }
+  return FALSE;
 }
 
 CONST_STRPTR playsidcpp_tune_md5 (struct PlaysidFp *s)
@@ -550,33 +640,28 @@ CONST_STRPTR playsidcpp_tune_md5 (struct PlaysidFp *s)
     return NULL;
   }
   if (s->Initialized != TRUE) {
-    s->Error = PFE_PLAYER_NOT_INITIALIZED;
+    s->Error = PFE_NOT_INITIALIZED;
     return NULL;
   }
   playsidcpp_priv_t *priv = static_cast<playsidcpp_priv_t *> (s->PrivateData);
   if (priv == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
-    return 0;
-  }
-  if (priv->tune == NULL) {
-    s->Error = PFE_PLAYER_NOT_ALLOCATED;
+    s->Error = PFE_NOT_ALLOCATED;
     return NULL;
   }
-  return (CONST_STRPTR)priv->tune->createMD5New(0); // creates interrnally new
+  if (priv->tune == NULL) {
+    s->Error = PFE_NOT_ALLOCATED;
+    return NULL;
+  }
+
+  try {
+    return (CONST_STRPTR)priv->tune->createMD5New(0); // creates internally new
+  } catch (...) {
+    s->Error = PFE_TUNE_MD5;
+  }
+  return NULL;
 }
 
 /* static */
-bool is_sidbuilder_valid(sidbuilder *b)
-{
-  if (b == NULL) {
-    return false;
-  }
-  if (!b->getStatus()) {
-    return false;
-  }
-  return true;
-}
-
 SidConfig::sid_model_t sid_model_to_sidplay_config(BYTE sid_model)
 {
   if (sid_model == PF_SID_MODEL_MOS8580) {
