@@ -189,7 +189,8 @@ a65_SOURCES = \
 
 LIBRARY_SOURCES = \
 library.c \
-libsections.c
+libsections.c \
+libadditions.c
 
 LIBRARY_CPP_SOURCES = \
 playsidcpp.cpp

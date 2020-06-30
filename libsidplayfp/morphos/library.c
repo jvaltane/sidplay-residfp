@@ -104,14 +104,6 @@ const struct Resident RomTag	=
 **********************************************************************/
 
 const ULONG __abox__	= 1;
-#if 1
-int ThisRequiresConstructorHandling = 1;
-void *libnix_mempool = 0L;
-void exit(int status)
-{
-}
-#endif
-
 struct ExecBase *SysBase;
 
 LONG NoExecute(void)
