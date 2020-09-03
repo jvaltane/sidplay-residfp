@@ -215,6 +215,16 @@ BOOL playsidcpp_set_roms(struct PlaysidFp *s, CONST UBYTE *kernal, CONST UBYTE *
     s->Error = PFE_SET_ROMS;
     return FALSE;
   }
+  try {
+    bool rc = priv->sp->load (priv->tune);
+    if (!rc) {
+        s->Error = PFE_TUNE_LOAD;
+        return FALSE;
+    }
+  } catch (...) {
+    s->Error = PFE_TUNE_LOAD;
+    return FALSE;
+  }
   return TRUE;
 }
 
@@ -460,11 +470,11 @@ BOOL playsidcpp_filter (struct PlaysidFp *s, BOOL filter)
 
   try {
     priv->config.sidEmulation->filter((filter==TRUE)?true:false);
-    return TRUE;
   } catch (...) {
     s->Error = PFE_FILTER;
     return FALSE;
   }
+  return TRUE;
 }
 
 LONG playsidcpp_time (struct PlaysidFp *s)

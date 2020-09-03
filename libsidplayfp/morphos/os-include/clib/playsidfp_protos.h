@@ -185,7 +185,7 @@ void PlaysidFpFree( struct PlaysidFp *Player );
 /**
  * Sets rom files to player. Optional function. Required only for basic based
  * tunes. It is safe to free allocated memory for kernal, basic and chagen right
- * after call. Settings roms before init is also safe.
+ * after call. Set roms before or after init is possible. 
  *
  * Player
  * Kernal - kernal rom. Size should be exacly 8192 bytes
