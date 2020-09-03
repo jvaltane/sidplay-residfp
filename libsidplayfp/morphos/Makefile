@@ -200,13 +200,13 @@ lib_shared.c
 
 #----------------------
 
-all: playsidfp.library libplaysidfp.a example
+all: playsidfp.library lib/libplaysidfp.a example test_setsubtune
 
 libsidplayfp_a_CPPFLAGS = $(CPPFLAGS)
 libsidplayfp_resid_a_CPPFLAGS = $(CPPFLAGS)
 libresidfp_a_CPPFLAGS = $(CPPFLAGS)
 libsidplayfp_residfp_a_CPPFLAGS = $(CPPFLAGS)
-LIBRARY_CPPFLAGS = $(CPPFLAGS) -Istatic-include
+LIBRARY_CPPFLAGS = $(CPPFLAGS) -Ilibsidplayfp-include
 
 libsidplayfp_a_OBJECTS = $(libsidplayfp_a_SOURCES:.cpp=.o)
 
@@ -258,16 +258,18 @@ libsidplayfp-resid.a: libresid.a $(libsidplayfp_resid_a_OBJECTS)
 
 libsidplayfp-residfp.a: libresidfp.a $(libsidplayfp_residfp_a_OBJECTS)
 
-libsidplayfp.a: $(a65_OBJECTS) libsidplayfp-residfp.a libsidplayfp-resid.a $(libsidplayfp_a_OBJECTS)
+lib/libsidplayfp.a: $(a65_OBJECTS) libsidplayfp-residfp.a libsidplayfp-resid.a $(libsidplayfp_a_OBJECTS)
+	$(MKDIR) lib
 	$(AR) -crv $@ $(libsidplayfp_a_OBJECTS) $(libsidplayfp_residfp_a_OBJECTS) $(libresidfp_a_CPP_OBJECTS) $(libresidfp_a_CC_OBJECTS) $(libsidplayfp_resid_a_OBJECTS) $(libresid_a_OBJECTS)
 	$(RANLIB) $@
-	$(MKDIR) static-include/sidplayfp/builders
-	$(CP) $(libsidplayfp_a_HEADERS) static-include/sidplayfp/
-	$(CP) include/sidplayfp/sidversion.h static-include/sidplayfp/
-	$(CP) $(libsidplayfp_residfp_a_HEADERS) static-include/sidplayfp/builders/
-	$(CP) $(libsidplayfp_resid_a_HEADERS) static-include/sidplayfp/builders/
+	$(MKDIR) libsidplayfp-include/sidplayfp/builders
+	$(CP) $(libsidplayfp_a_HEADERS) libsidplayfp-include/sidplayfp/
+	$(CP) include/sidplayfp/sidversion.h libsidplayfp-include/sidplayfp/
+	$(CP) $(libsidplayfp_residfp_a_HEADERS) libsidplayfp-include/sidplayfp/builders/
+	$(CP) $(libsidplayfp_resid_a_HEADERS) libsidplayfp-include/sidplayfp/builders/
 
-libplaysidfp.a: $(libplaysidfp_a_OBJECTS)
+lib/libplaysidfp.a: $(libplaysidfp_a_OBJECTS)
+	$(MKDIR) lib
 	$(AR) -crv $@ $(libplaysidfp_a_OBJECTS)
 	$(RANLIB) $@
 
@@ -275,12 +277,16 @@ gen_includes:
 	$(MKDIR) os-include/proto os-include/ppcinline os-include/inline
 	cvinclude.pl --fd=os-include/fd/playsidfp_lib.fd --clib=os-include/clib/playsidfp_protos.h --inline=os-include/ppcinline/playsidfp.h --proto=os-include/proto/playsidfp.h --vbccinlines=os-include/inline/playsidfp_protos.h
 
-playsidfp.library: libsidplayfp.a $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS)
-	$(CXX) $(LIBRARY_LDFLAGS) -o $@.db $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS) libsidplayfp.a -lc -lm
+playsidfp.library: lib/libsidplayfp.a $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS)
+	$(CXX) $(LIBRARY_LDFLAGS) -o $@.db $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS) lib/libsidplayfp.a -lc -lm
 	$(STRIP) -o $@ --remove-section=-comment $@.db
 
-example: example.c libplaysidfp.a
-	$(CC) -noixemul -Ios-include -L. -o $@ example.c -lplaysidfp
+example: example.c lib/libplaysidfp.a
+	$(CC) -noixemul -Ios-include -Llib -o $@ example.c -lplaysidfp
+
+test_setsubtune: test_setsubtune.c lib/libplaysidfp.a
+	$(CC) -noixemul -Ios-include -Llib -o $@ test_setsubtune.c -lplaysidfp
+
 
 #=========================================================
 # Recreate psiddrv.bin, needs xa65
@@ -296,8 +302,8 @@ $(a65_OBJECTS): %.bin: %.a65
 	$(PERL) ../src/builders/resid-builder/resid/samp2src.pl $* $< $@
 
 install: sidplayfp.library
-	$(CP) libplaysidfp.a $(PREFIX)/lib/
-	$(CP) libsidplayfp.a $(PREFIX)/lib/
+	$(CP) lib/libplaysidfp.a $(PREFIX)/lib/
+	$(CP) lib/libsidplayfp.a $(PREFIX)/lib/
 	$(MKDIR) $(PREFIX)/include/sidplayfp/builders
 	$(CP) $(libsidplayfp_static_a_HEADERS) $(PREFIX)/include/sidplayfp/
 	$(CP) include/sidplayfp/sidversion.h $(PREFIX)/include/sidplayfp/
@@ -310,5 +316,5 @@ uninstall:
 	$(RM) $(PREFIX)/include/sidplayfp
 
 clean:
-	$(RM) example playsidfp.library* libplaysidfp.a libsidplayfp.a libsidplayfp-residfp.a libsidplayfp-resid.a libresidfp.a libresid.a $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS) $(libplaysidfp_a_OBJECTS) $(libsidplayfp_a_OBJECTS) $(libresid_a_OBJECTS) $(libsidplayfp_resid_a_OBJECTS) $(libresidfp_a_CPP_OBJECTS) $(libresidfp_a_CC_OBJECTS) $(libsidplayfp_residfp_a_OBJECTS) $(a65_OBJECTS) static-include
+	$(RM) example playsidfp.library* lib libsidplayfp-residfp.a libsidplayfp-resid.a libresidfp.a libresid.a $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS) $(libplaysidfp_a_OBJECTS) $(libsidplayfp_a_OBJECTS) $(libresid_a_OBJECTS) $(libsidplayfp_resid_a_OBJECTS) $(libresidfp_a_CPP_OBJECTS) $(libresidfp_a_CC_OBJECTS) $(libsidplayfp_residfp_a_OBJECTS) $(a65_OBJECTS) libsidplayfp-include
 
