@@ -1,5 +1,5 @@
 /**
- * PlaysidFp Copyright 2017 Joni Valtanen
+ * PlaysidFp - Copyright (c) 2020 Joni Valtanen <jvaltane at kapsi dot fi>
  *
  * PlaysidFp is C implementation of SidplayFp.
  *
@@ -16,306 +16,112 @@
 # include <utility/tagitem.h>
 #endif
 
-/** Defines for tags
+/** Defines for PlaysidFpCreate Tags
  *
- * See also: Tags
+ * See also: PlaysidFpCreate Tags
  *
- * Example:
- *     PlaysidFp *player = PlaysidFPCreate (
- *       PFA_Emulation, PF_EMULATION_RESIDFP,
- *       NULL);
- *
- * PF_EMULATION_RESIDFP
- *
- *   Use ReSIDfp emulation
- *
- * PF_EMULATION_RESID
- *
- *   Use ReSID emulation
- *
- * PF_SID_MODEL_MOS6581
- *
- *   Try to use MOS6581 as SID model with emulation.
- *
- * PF_SID_MODEL_MOS8580
- *
- *
- *   Try to use MOS8589 as SID model with emulation.
- *
- * PF_MACHINE_TYPE_PAL
- *
- *   Try to use PAL machine model with emulation.
- *
- * PF_MACHINE_TYPE_NTSC
- *
- *   Try to use NTSC machine model with emulation.
- *
- * PF_MACHINE_TYPE_PAL_M
- *
- *   Try to use PAL_M machine model with emulation.
- *
- * PF_MACHINE_TYPE_OLD_NTSC
- *
- *   Try to use OLD_NTSC machine model with emulation.
- *
- * PF_MACHINE_TYPE_DREAN
- *
- *   Try to use DREAN machine model with emulation.
- *
- * PF_CIA_MODEL_MOS6526
- *
- *   Try to use MOS6526 as CIA model with emulation.
- *
- * PF_CIA_MODEL_MOS8521
- *
- *   Try to use MOS8521 as CIA model with emulation.
- *
- * PF_SAMPLING_METHOD_INTERPOLATE
- *
- *   Try to use interpolate as sampling method with emulation.
- *
- * PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE
- *
- *   Try to use resample nterpolate as sampling method with emulation.
- *
- * PF_PLAYBACK_MONO
- *
- *   Use mono playback.
- *
- * PF_PLAYBACK_STEREO
- *
- *   Use stereo playback.
  */
-#define PF_EMULATION_RESIDFP                    0
-#define PF_EMULATION_RESID                      1
-#define PF_SID_MODEL_MOS6581                    0
-#define PF_SID_MODEL_MOS8580                    1
-#define PF_MACHINE_TYPE_PAL                     0
-#define PF_MACHINE_TYPE_NTSC                    1
-#define PF_MACHINE_TYPE_PAL_M                   2
-#define PF_MACHINE_TYPE_OLD_NTSC                3
-#define PF_MACHINE_TYPE_DREAN                   4
-#define PF_CIA_MODEL_MOS6526                    0
-#define PF_CIA_MODEL_MOS8521                    1
-#define PF_SAMPLING_METHOD_INTERPOLATE          0
-#define PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1
-#define PF_PLAYBACK_MONO                        0
-#define PF_PLAYBACK_STEREO                      1
+#define PF_EMULATION_RESIDFP                    0 /** Use ReSIDfp emulation */
+#define PF_EMULATION_RESID                      1 /** Use ReSID emulation */
+#define PF_SID_MODEL_MOS6581                    0 /** Try to use MOS6581 as SID model with emulation. */
+#define PF_SID_MODEL_MOS8580                    1 /** Try to use MOS8589 as SID model with emulation. */
+#define PF_MACHINE_TYPE_PAL                     0 /** Try to use PAL machine model with emulation. */
+#define PF_MACHINE_TYPE_NTSC                    1 /** Try to use NTSC machine model with emulation. */
+#define PF_MACHINE_TYPE_PAL_M                   2 /** Try to use PAL_M machine model with emulation. */
+#define PF_MACHINE_TYPE_OLD_NTSC                3 /** Try to use OLD_NTSC machine model with emulation. */
+#define PF_MACHINE_TYPE_DREAN                   4 /** Try to use DREAN machine model with emulation. */
+#define PF_CIA_MODEL_MOS6526                    0 /** Try to use MOS6526 as CIA model with emulation. */
+#define PF_CIA_MODEL_MOS8521                    1 /** Try to use MOS8521 as CIA model with emulation. */
+#define PF_SAMPLING_METHOD_INTERPOLATE          0 /** Use interpolate as sampling method with emulation. */
+#define PF_SAMPLING_METHOD_RESAMPLE_INTERPOLATE 1 /** Use resample interpolate as sampling method with emulation. */
+#define PF_PLAYBACK_MONO                        0 /** Use mono playback. */
+#define PF_PLAYBACK_STEREO                      1 /** Use stereo playback. */
 
-/* PlaysidFpInfo defines */
-#define PFI_CLOCK_UNKNOWN       0
-#define PFI_CLOCK_PAL           1
-#define PFI_CLOCK_NTSC          2
-#define PFI_CLOCK_ANY           3
-#define PFI_SID_MODE_UNKNOWN    0
-#define PFI_SID_MODEL_MOS6581   1
-#define PFI_SID_MODEL_MOS8580   2
-#define PFI_SID_MODEL_ANY       3
-#define PFI_COMPATIBILITY_C64   0
-#define PFI_COMPATIBILITY_PSID  1
-#define PFI_COMPATIBILITY_R64   2
-#define PFI_COMPATIBILITY_BASIC 3
+/** PlaysidFpInfo defines
+ *
+ * Defines for struct PlaysidFpInfo.
+ *
+ * See also: struct PlaysidFpInfo
+ */
+#define PFI_CLOCK_UNKNOWN       0 /** SID tune does not tell preferable clock */
+#define PFI_CLOCK_PAL           1 /** PAL is prefeerable clock */
+#define PFI_CLOCK_NTSC          2 /** NTSC is prefeerable clock */
+#define PFI_CLOCK_ANY           3 /** Any clock should work */
+#define PFI_SID_MODEL_UNKNOWN   0 /** SID tune does not tell which SID model is the best */
+#define PFI_SID_MODEL_MOS6581   1 /** SID tune prefers MOS6581 SID model */
+#define PFI_SID_MODEL_MOS8580   2 /** SID tune prefers MOS8580 SID model */
+#define PFI_SID_MODEL_ANY       3 /** Any SID model should work */
+#define PFI_COMPATIBILITY_C64   0 /** SID works with C64 */
+#define PFI_COMPATIBILITY_PSID  1 /** PSID player is required */
+#define PFI_COMPATIBILITY_R64   2 /** R64 player is required */
+#define PFI_COMPATIBILITY_BASIC 3 /** Basic used to create SID tune */
 
-/** Tags
+/** PlaysidFpCreate Tags
  *
- * See also: Defines for tags.
+ * See also: Defines for PlaysidFpCreate Tags and PlaysidFpCreate.
  *
- * If tag is not given or its value is invalid default is used.
+ * If tag is not given or its value is invalid, default is used.
  *
- * PFA_Emulation
- *
- *   Type of emulation. Possible options are RESID or RESIDFP
- *   Default: PF_EMULATION_RESIDFP
- *
- * PFA_SidModel
- *
- *   Type of SID model. Possible options MOS8580 or MOS6581
- *   Default: PF_SID_MODEL_MOS6581
- *
- * PFA_SidModelForce
- *
- *   Forces the SID model and does not let player choose. Boolean value.
- *   Default: FALSE
- *
- * PFA_MachineType
- *
- *   Machine type. Possible options PAL, NTSC, PAL_M, OLD_NTSC and DREAN.
- *   Default: PF_MACHINE_TYPE_PAL
- *
- * PFA_MachineTypeForce
- *
- *   Forces the machine type and does not let player choose. Boolean value.
- *   Default: FALSE
- *
- * PFA_CiaModel
- *
- *   CIA model. Possible options MOS6526 and MOS8521.
- *   Default PF_CIA_MODEL_MOS6526
- *
- * PFA_SamplingMethod
- *
- *   Sampling method. INTERPOLATE and RESAMPLE_INTERPOLATE
- *   Default: PF_SAMPLING_METHOD_INTERPOLATE
- *
- * PFA_Filter
- *
- *   Use filter. Boolean value.
- *   Default value: FALSE
- *
- * PFA_Digiboost
- *
- *   Use SID digiboost. For MOS8580 only, Boolean value.
- *   Defalt: FALSE
- *
- * PFA_Playback
- *
- *   Playback mode. MONO or STEREO
- *   Default: PF_PLAYPACK_MONO
- *
- * PFA_ResidBias
- *
- *   Bias of the RESID. Floating point value.
- *   Default: 0.5
- *
- * PFA_ResidFpFilterCurve6581
- *
- *   RESIDFPs MOS6581 filtere curve. Floating point value.
- *   Default: 0.5
- *
- * PFA_ResidFpFilterCurve8580
- *
- *   RESIDFPs MOS8580 filtere curve. Floating point value.
- *   Default: 0.5
- *
- * PFA_AudioFrequency
- *
- *   Frequency of the playback. Some reasonable unssigned intereg value.
- *   Default: 44100
  */
 #define PFA_DUMMY                  (TAG_USER + 0x4000)
-#define PFA_Emulation              (PFA_DUMMY + 1)
-#define PFA_SidModel               (PFA_DUMMY + 2)
-#define PFA_SidModelForce          (PFA_DUMMY + 3)
-#define PFA_MachineType            (PFA_DUMMY + 4)
-#define PFA_MachineTypeForce       (PFA_DUMMY + 5)
-#define PFA_CiaModel               (PFA_DUMMY + 6)
-#define PFA_SamplingMethod         (PFA_DUMMY + 7)
-#define PFA_Filter                 (PFA_DUMMY + 8)
-#define PFA_Digiboost              (PFA_DUMMY + 9)
-#define PFA_Playback               (PFA_DUMMY + 10)
-#define PFA_ResidBias              (PFA_DUMMY + 11)
-#define PFA_ResidFpFilterCurve6581 (PFA_DUMMY + 12)
-#define PFA_ResidFpFilterCurve8580 (PFA_DUMMY + 13)
-#define PFA_AudioFrequency         (PFA_DUMMY + 14)
+#define PFA_Emulation              (PFA_DUMMY + 1)  /** Type of emulation. Possible options are RESID or RESIDFP.
+                                                        Default: PF_EMULATION_RESIDFP */
+#define PFA_SidModel               (PFA_DUMMY + 2)  /** Type of SID model. Possible options MOS8580 or MOS6581.
+                                                        Default: PF_SID_MODEL_MOS6581 */
+#define PFA_SidModelForce          (PFA_DUMMY + 3)  /** Forces the SID model and does not let player choose. Boolean value.
+                                                        Default: FALSE */
+#define PFA_MachineType            (PFA_DUMMY + 4)  /** Machine type. Possible options PAL, NTSC, PAL_M, OLD_NTSC and DREAN.
+                                                        Default: PF_MACHINE_TYPE_PAL */
+#define PFA_MachineTypeForce       (PFA_DUMMY + 5)  /** Forces the machine type and does not let player choose. Boolean value.
+                                                        Default: FALSE */
+#define PFA_CiaModel               (PFA_DUMMY + 6)  /** CIA model. Possible options MOS6526 and MOS8521.
+                                                        Default PF_CIA_MODEL_MOS6526 */
+#define PFA_SamplingMethod         (PFA_DUMMY + 7)  /** Sampling method. INTERPOLATE and RESAMPLE_INTERPOLATE.
+                                                        Default: PF_SAMPLING_METHOD_INTERPOLATE */
+#define PFA_Filter                 (PFA_DUMMY + 8)  /** Use filter. Boolean value.
+                                                        Default value: FALSE */
+#define PFA_Digiboost              (PFA_DUMMY + 9)  /** Use SID digiboost. For MOS8580 only, Boolean value.
+                                                        Default: FALSE */
+#define PFA_Playback               (PFA_DUMMY + 10) /** Playback mode. Mono or stereo.
+                                                        Default: PF_PLAYPACK_MONO */
+#define PFA_ResidBias              (PFA_DUMMY + 11) /** Bias of the RESID. Floating point value.
+                                                        Default: 0.5 */
+#define PFA_ResidFpFilterCurve6581 (PFA_DUMMY + 12) /** RESIDFPs MOS6581 filtere curve. Floating point value.
+                                                        Default: 0.5 */
+#define PFA_ResidFpFilterCurve8580 (PFA_DUMMY + 13) /** RESIDFPs MOS8580 filtere curve. Floating point value.
+                                                        Default: 0.5 */
+#define PFA_AudioFrequency         (PFA_DUMMY + 14) /** Frequency of the playback. Some reasonable unssigned intereg value.
+                                                        Default: 44100 */
 
 /** Errors
  *
- *   Functions set PlaysidFP structs Error if those fails. Error tells more
- *   specific information why function fails.
- *
- * PFE_OK
- *
- *   Everything is OK.
- *
- * PFE_PARAMETERS
- *
- *   Parameters for function are invalid. PlaysidFpCreate() is exception it sets
- *   default values if invalid values are passed.
- *
- * PFE_NOT_ALLOCATED
- *
- *   PlaysidFpCreate() has failed, not called or some other reason Player is
- *   not valid.
- *
- * PFE_EMULATION_RESID
- *
- *   ReSID init in PlaysidFpInit() failed.
- *
- * PFE_EMULATION_RESIDFP
- *
- *   ReSIDfp init in PlaysidFpInit() failed.
- *
- * PFE_NOT_INITIALIZED
- *
- *   This is set if function which requires PlaysidInit() is called and init
- *   has failed or not called at all.
- *
- * PFE_TUNE_INFO
- *
- *   Could not get tune info. Internal C++ method fails.
- *
- * PFE_TUNE_LOAD
- *
- *   Could not load tune. Internal C++ method fails.
- *
- * PFE_TUNE_MD5
- *
- *   Could not get md5 of tune. Internal C++ method fails.
- *
- * PFE_SUBTUNE
- *
- *   Could not get current subtune. Internal C++ method fails.
- *
- * PFE_SUBTUNE_SET
- *
- *   Could not set current subtune. Internal C++ method fails.
- *
- * PFE_SUBTUNES
- *
- *   Could not get number of subtunes. Internal C++ method fails.
- *
- * PFE_CONFIG
- *
- *   Players config has problem. Internal C++ method fails.
- *
- * PFE_TIME
- *
- *   Could not get current time. Internal C++ method fails.
- *
- * PFE_SPEED
- *
- *   Could not set tune speed. Internal C++ method fails.
- *
- * PFE_PLAY
- *
- *   Could not get buffer from play. Internal C++ method fails.
- *
- * PFE_SET_ROMS
- *
- *   Could not set roms.
- *
- * PFE_MUTE
- *
- *   Could not set mute value. Internal C++ method fails.
- *
- * PFE_FILTER
- *
- *   Could not set filter. Internal C++ method fails.
+ * Functions set PlaysidFP structs Error if those fails. Error tells more
+ * specific information why function fails.
  *
  */
-#define PFE_OK                0
-#define PFE_PARAMETERS        1
-#define PFE_NOT_ALLOCATED     2
-#define PFE_EMULATION_RESID   3
-#define PFE_EMULATION_RESIDFP 4
-#define PFE_NOT_INITIALIZED   5
-#define PFE_TUNE_INFO         6
-#define PFE_TUNE_LOAD         7
-#define PFE_TUNE_MD5          8
-#define PFE_SUBTUNE           9
-#define PFE_SUBTUNE_SET       10
-#define PFE_SUBTUNES          11
-#define PFE_CONFIG            12
-#define PFE_TIME              13
-#define PFE_SPEED             14
-#define PFE_PLAY              15
-#define PFE_SET_ROMS          16
-#define PFE_MUTE              17
-#define PFE_FILTER            18
+#define PFE_OK                0  /** Everything is OK. */
+#define PFE_PARAMETERS        1  /** Parameters for function are invalid. PlaysidFpCreate() is exception it sets default values if invalid values are passed. */
+#define PFE_NOT_ALLOCATED     2  /** PlaysidFpCreate() has failed, not called or some other reason Player is not valid. */
+#define PFE_EMULATION_RESID   3  /** ReSID init in PlaysidFpInit() failed. */
+#define PFE_EMULATION_RESIDFP 4  /** ReSIDfp init in PlaysidFpInit() failed. */
+#define PFE_NOT_INITIALIZED   5  /** This is set if function which requires PlaysidInit() is called and init has failed or not called at all. */
+#define PFE_TUNE_INFO         6  /** Could not get tune info. */
+#define PFE_TUNE_LOAD         7  /** Could not load tune. */
+#define PFE_TUNE_MD5          8  /** Could not get md5 of tune. */
+#define PFE_SUBTUNE           9  /** Could not get current subtune. */
+#define PFE_SUBTUNE_SET       10 /** Could not set current subtune. */
+#define PFE_SUBTUNES          11 /** Could not get number of subtunes. */
+#define PFE_CONFIG            12 /** Players config has problem. */
+#define PFE_TIME              13 /** Could not get current time. */
+#define PFE_SPEED             14 /** Could not set tune speed. */
+#define PFE_PLAY              15 /** Could not get buffer from play. */
+#define PFE_SET_ROMS          16 /** Could not set roms. */
+#define PFE_MUTE              17 /** Could not set mute value. */
+#define PFE_FILTER            18 /** Could not set filter. */
 
 /** struct PlaysidFpInfo
  *
- *  Info about SID-tune. Returned by PlaysidFpTuneInfo().
+ *  Info about SID tune. Returned by PlaysidFpTuneInfo.
  */
 struct PlaysidFpInfo
 {
@@ -351,6 +157,12 @@ struct PlaysidFp *PlaysidFpCreateA( struct TagItem *Items );
 
 /**
  * Wrapper for PlaysidFpCreateA()
+ *
+ * Example:
+ *
+ *     PlaysidFp *player = PlaysidFPCreate (
+ *       PFA_Emulation, PF_EMULATION_RESIDFP,
+ *       NULL);
  */
 struct PlaysidFp *PlaysidFpCreate( Tag, ... );
 
@@ -358,6 +170,15 @@ struct PlaysidFp *PlaysidFpCreate( Tag, ... );
  * Free player
  *
  * Player - allocated PlaysidFp struct
+ *
+ * Example:
+ *
+ *     PlaysidFp *player = PlaysidFPCreate (
+ *       PFA_Emulation, PF_EMULATION_RESIDFP,
+ *       NULL);
+ *     if (player == NULL) return -1;
+ *     PlaysidFpFree (player);
+ *
  */
 void PlaysidFpFree( struct PlaysidFp *Player );
 
