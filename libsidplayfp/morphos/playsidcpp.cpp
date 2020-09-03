@@ -489,7 +489,7 @@ LONG playsidcpp_time (struct PlaysidFp *s)
     return static_cast<ULONG>(priv->sp->timeMs());
   } catch (...) {
     s->Error = PFE_TIME;
-    return FALSE;
+    return -1;
   }
 }
 
@@ -626,12 +626,22 @@ BOOL playsidcpp_subtune_set (struct PlaysidFp *s, UWORD subtune)
       s->Error = PFE_SUBTUNE_SET;
       return FALSE;
     }
-    priv->current_subtune = csubtune;
-    return TRUE;
   } catch (...) {
     s->Error = PFE_SUBTUNE_SET;
+    return FALSE;
   }
-  return FALSE;
+  try {
+    bool rc = priv->sp->load (priv->tune);
+    if (!rc) {
+        s->Error = PFE_TUNE_LOAD;
+        return FALSE;
+    }
+  } catch (...) {
+    s->Error = PFE_TUNE_LOAD;
+    return FALSE;
+  }
+  priv->current_subtune = csubtune;
+  return TRUE;
 }
 
 CONST_STRPTR playsidcpp_tune_md5 (struct PlaysidFp *s)
