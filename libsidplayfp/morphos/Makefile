@@ -281,10 +281,10 @@ playsidfp.library: lib/libsidplayfp.a $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS)
 	$(CXX) $(LIBRARY_LDFLAGS) -o $@.db $(LIBRARY_OBJECTS) $(LIBRARY_CPP_OBJECTS) lib/libsidplayfp.a -lc -lm
 	$(STRIP) -o $@ --remove-section=-comment $@.db
 
-example: example.c lib/libplaysidfp.a
+example: example.c lib/libplaysidfp.a gen_includes
 	$(CC) -noixemul -Ios-include -Llib -o $@ example.c -lplaysidfp
 
-test_setsubtune: test_setsubtune.c lib/libplaysidfp.a
+test_setsubtune: test_setsubtune.c lib/libplaysidfp.a gen_includes
 	$(CC) -noixemul -Ios-include -Llib -o $@ test_setsubtune.c -lplaysidfp
 
 
