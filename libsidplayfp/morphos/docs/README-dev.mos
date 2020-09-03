@@ -1,14 +1,14 @@
-============
-LibSidplayFp
-============
+=========
+playsidfp
+=========
 
-MorphOS port of libsidplayfp.
+Amiga like library/C wrapper for libsidplayfp. Package also contains static libsidplayfp.
 
 ------------------
 Build requirements
 ------------------
 
-* gcc (varsion > 5)
+* gcc (version > 5)
 * xa - cross assembler
 
 --------------------
