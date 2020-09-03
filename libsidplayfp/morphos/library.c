@@ -8,7 +8,7 @@
 
 #define COMPILE_VERSION  1
 #define COMPILE_REVISION 0
-#define COMPILE_DATE     "(24.6.2020)"
+#define COMPILE_DATE     "(3.9.2020)"
 #define PROGRAM_VER      "1.0"
 
 /**********************************************************************
