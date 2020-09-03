@@ -305,7 +305,7 @@ LONG PlaysidFpTime( struct PlaysidFp *Player );
 
 /**
  * Get tunes MD5 sum. MD5 sum can be used for example to get song length from
- * HVSC database. This should be called after init or if subtune is changed.
+ * HVSC database. This should be called after init.
  *
  * Player
  *
